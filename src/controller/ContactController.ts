@@ -17,25 +17,26 @@ const modified_Contact = async(req: Request, res: Response): Promise<void> => {
     
     try {
         const queryText = 
-        "C_DateModified>" + "'" + utils.yesterday_getDateTime().start + " 10:00:00'" + 
-        "C_DateModified<" + "'" + utils.yesterday_getDateTime().end + " 11:00:59'";						
+        "C_DateCreated>" + "'" + utils.yesterday_getDateTime().start + " 00:00:00'" + 
+        "C_DateCreated<" + "'" + utils.yesterday_getDateTime().start + " 23:59:59'";						
         //let queryText = "emailAddress='jtlim@goldenplanet.co.kr'";
         const queryString: IReqContact = {
             search: queryText,
             depth: "complete"
         }
+        console.log(queryString);
+        
 
         // 데이터 service에서 데이터 정제 완료 비즈니스 로직
     
-        const sendContactData = ContactService.modified_Contact(queryString);
+        const sendContactData = await ContactService.Get_ContactList(queryString);
+        //const sendContactData = await ContactService.Insert_Form();
         
         // 최종적으로 통합 DB에 전달 하는 controller 
         //modidfed 된 컨택 
-        console.log(sendContactData);
+        //console.log(sendContactData);
         
-        res.status(200).json({
-            message: "통신 성공"
-        })
+        res.status(200).json(sendContactData)
     } catch (error) {
 
     }

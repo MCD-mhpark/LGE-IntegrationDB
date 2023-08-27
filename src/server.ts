@@ -17,6 +17,7 @@ import { NodeEnvs } from '@src/constants/misc';
 import { RouteError } from '@src/other/classes';
 
 import contactRoutes from '@src/routes/ContactRoutes';
+import accountRoutes from '@src/routes/AccountRoutes';
 
 // **** Variables **** //
 
@@ -64,7 +65,8 @@ app.use((
 
 
 //app.use(Auth);
-app.use('/contact', contactRoutes);
+app.use('/eloquaContact', contactRoutes);
+app.use('/eloquaAccount', accountRoutes);
 
 // **** Export default **** //
 
