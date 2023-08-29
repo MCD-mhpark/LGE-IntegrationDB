@@ -206,19 +206,6 @@ export function convertCountry(country: string): string {
     return mappedCountry;
 }
 
-interface Account {
-    UID: string; // UID
-    CountryCode: string; // 국가
-    BizNo: string | null; // 사업자 등록 번호
-    TaxId: string | null; // TaxID
-    DUNSNo: string | null; // Duns Number
-    CompName: string | null; // Account 이름
-    CompNameEng: string | null; // Account 영문이름
-    Zip: string | null; // 우편번호
-    CorpNo: string | null; // 법인등록번호
-    DetailAddr: string | null // 상세주소
-}
-
 export interface IAccountReq {
     LGCompanyDivision: string;
     SourceSystemDivision: string;
@@ -233,7 +220,7 @@ export interface IAccountRes {
     totalCount: number | null;
     resultCount: number | null;
     result: {
-        Account: Account[];
+        Account: any;
     };
     perCount: number | null;
     nowPage: number | null;

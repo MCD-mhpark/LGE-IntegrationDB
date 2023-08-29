@@ -43,7 +43,7 @@ async function GetToken():Promise<any> {
                 "error" : "LG_API 토큰 값을 받아오지 못하였습니다.",
                 "response_msg" : [error]
             });
-            return error
+            throw error
         })
 }    
 
@@ -90,7 +90,7 @@ export const AccountSingleResult = async ():Promise<any> => {
                 // }
         })
         .catch(function (error):AxiosError<any> {
-            return error;
+            throw error;
         })
     }
 
@@ -126,7 +126,7 @@ export const AccountProvide = async (data: IAccountReq):Promise<any> => {
             "error" : "Account 생성 및 변경 목록 전송 API 오류가 발생하였습니다.",
             "response_msg" : [error.response ? JSON.stringify(error.response.data) : error]
         });
-        return error
+        throw error
     })
 
 }    
