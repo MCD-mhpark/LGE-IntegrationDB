@@ -13,3 +13,11 @@ export function yesterday_getDateTime(){
         end
     }
 }
+
+export function matchFieldValues(data: any, id: string) {
+    return data.fieldValues.map((fv: any) => {
+        if(fv.id === id)
+            return fv.value; // 값이 없으면 undefined로 return
+    })
+}
+

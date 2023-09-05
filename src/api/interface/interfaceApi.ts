@@ -226,3 +226,17 @@ export interface IAccountRes {
     nowPage: number | null;
     message: string;
 }
+
+export interface IAccountRegister {
+    Account: IAccountRegisterData[];
+  }
+interface IAccountRegisterData {
+    SourceSystemKey1: string;
+    Country: string;
+    AccountName: string;
+    LGCompanyDivision: string;
+    CompanyRegistrationNumber: string;
+    Zip: string;
+    Address: string;
+    Attribute1: string;
+  }

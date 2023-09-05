@@ -1,7 +1,9 @@
 import express, { Request, Response } from "express";
 
-import { IReqContact } from "@src/models/ContactDTO";
+import { Contact, IReqContact } from "@src/models/ContactDTO";
 import ContactService from "@src/services/ContactService"
+import {convertCountry} from "@src/api/interface/interfaceApi"
+import {AccountSingleResult} from "@src/api/Lg_Api"
 import * as utils from "@src/util/etc_function";
 
 const test = async(req: Request, res: Response): Promise<any> =>{
@@ -13,31 +15,60 @@ const test = async(req: Request, res: Response): Promise<any> =>{
     })
 }
 
+
+/*
+* 전 날 C_DateModified 조회 Contact 기준
+* KR => 국가 = KR && 사업자등록번호 != null
+* Global_T => 국가 = Global 이면 TaxID != null
+* Global_D => 국가 = Global 이면 DunsNumber != null
+*/
 const modified_Contact = async(req: Request, res: Response): Promise<void> => {
     
     try {
-        const queryText = 
-        "C_DateCreated>" + "'" + utils.yesterday_getDateTime().start + " 00:00:00'" + 
-        "C_DateCreated<" + "'" + utils.yesterday_getDateTime().start + " 23:59:59'";						
-        //let queryText = "emailAddress='jtlim@goldenplanet.co.kr'";
-        const queryString: IReqContact = {
-            search: queryText,
-            depth: "complete"
-        }
-        console.log(queryString);
+        
+        //1. 전 날 C_DateModified이면서 code 조건: KR, Global_D, Global_T
+        const resdata = await ContactService.Get_ContactList("KR");
+        const contactData: Contact[] = resdata.elements;
+
+        //* 페이지 처리 해야함
+        console.log(resdata.total);
         
 
-        // 데이터 service에서 데이터 정제 완료 비즈니스 로직
-    
-        const sendContactData = await ContactService.Get_ContactList(queryString);
+        //2. UID 조회 (KR: 국가코드 + 사업자 등록번호, Global: 국가코드 + Tax ID or Duns N)
+        for(const data of contactData){
+
+            const email = data.emailAddress;
+            let companyName: string | undefined = data.hasOwnProperty('accountName') ? data.accountName : undefined ;
+            console.log(`### email: ${email}, CompanyName: ${companyName} ###`);
+            
+            
+            
+            let regNum: string = utils.matchFieldValues(data, '100398');
+            let taxId: string = utils.matchFieldValues(data, '100420');
+            let duns_Number: string = utils.matchFieldValues(data, '100421');
+
+
+            //UID 존재 여부 확인 및 UID 발급 요청, return UID 값
+            const UID = await ContactService.Check_UID(convertCountry(data.country), regNum, taxId, duns_Number);
+
+            //Contact Data Update
+
+            //Contact Data Form Insert
+   
+            //AccountSingleResult
+        }
+
+
+
         //const sendContactData = await ContactService.Insert_Form();
         
         // 최종적으로 통합 DB에 전달 하는 controller 
         //modidfed 된 컨택 
-        //console.log(sendContactData);
-        
-        res.status(200).json(sendContactData)
+        res.json(contactData);
     } catch (error) {
+
+        console.log('에러 발생 컨트롤러');
+        res.json(error);
 
     }
 
