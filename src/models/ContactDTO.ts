@@ -1,4 +1,4 @@
-export interface IReqContact {
+export interface IReqEloqua {
     search: string;
     depth: string;
   }

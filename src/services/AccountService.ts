@@ -2,30 +2,6 @@ import { lge_eloqua, lgeSdk_eloqua } from '@src/routes/Auth';
 import { IAccountRes } from "@src/api/interface/interfaceApi"
 import { Account, AccountForm } from "@src/models/AccountDTD"
 
-// interface Account {
-//     UID: string; // UID
-//     CountryCode: string; // 국가
-//     BizNo: string | null; // 사업자 등록 번호
-//     TaxId: string | null; // TaxID
-//     DUNSNo: string | null; // Duns Number
-//     CompName: string | null; // Account 이름
-//     CompNameEng: string | null; // Account 영문이름
-//     Zip: string | null; // 우편번호
-//     CorpNo: string | null; // 법인등록번호
-//     DetailAddr: string | null // 상세주소
-// }
-
-// interface IAccountRes {
-//     totalPage: number | null;
-//     totalCount: number | null;
-//     resultCount: number | null;
-//     result: {
-//         Account: Account[];
-//     };
-//     perCount: number | null;
-//     nowPage: number | null;
-//     message: string;
-// }
 
 //Account Search
 const integrationAccount = async (IntgrationDB_AccountData: IAccountRes): Promise<any> => {
@@ -66,7 +42,11 @@ const integrationAccount = async (IntgrationDB_AccountData: IAccountRes): Promis
 };
 
 
-
+////////////////////////////////////////////////////////
+/*
+*REST API ELOQUA
+*/
+////////////////////////////////////////////////////////
 //Account Search
 const searchAccount = async (accountUID:string): Promise<any> => {
    
@@ -265,10 +245,7 @@ const Insert_Form = async(account: Account): Promise<any> => {
 
 
 export default {
-    integrationAccount,
-    searchAccount,
-    createAccount,
-    updateAccount,
+    integrationAccount
 }
 
 

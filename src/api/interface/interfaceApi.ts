@@ -230,13 +230,12 @@ export interface IAccountRes {
 export interface IAccountRegister {
     Account: IAccountRegisterData[];
   }
-interface IAccountRegisterData {
-    SourceSystemKey1: string;
+export interface IAccountRegisterData {
+    //SourceSystemKey1: string;
     Country: string;
     AccountName: string;
     LGCompanyDivision: string;
-    CompanyRegistrationNumber: string;
-    Zip: string;
-    Address: string;
-    Attribute1: string;
+    CompanyRegistrationNumber? : string;
+    TaxId? : string
+    DunsNumber? : string
   }

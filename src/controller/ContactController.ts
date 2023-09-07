@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 
-import { Contact, IReqContact } from "@src/models/ContactDTO";
+import { Contact, IReqEloqua } from "@src/models/ContactDTO";
 import ContactService from "@src/services/ContactService"
 import {convertCountry} from "@src/api/interface/interfaceApi"
 import {AccountSingleResult} from "@src/api/Lg_Api"
@@ -8,7 +8,7 @@ import * as utils from "@src/util/etc_function";
 
 const test = async(req: Request, res: Response): Promise<any> =>{
 
-    console.log(req);
+    console.log("성공성공성공성공성공");
     
     return res.status(200).json({
         message: "통신 성공"
@@ -30,7 +30,7 @@ const modified_Contact = async(req: Request, res: Response): Promise<void> => {
         const resdata = await ContactService.Get_ContactList("KR");
         const contactData: Contact[] = resdata.elements;
 
-        //* 페이지 처리 해야함
+        //* 1000 건 이상 조회 될때 페이지 처리 해야함
         console.log(resdata.total);
         
 
@@ -38,18 +38,15 @@ const modified_Contact = async(req: Request, res: Response): Promise<void> => {
         for(const data of contactData){
 
             const email = data.emailAddress;
-            let companyName: string | undefined = data.hasOwnProperty('accountName') ? data.accountName : undefined ;
+            const companyName: string | undefined = data.hasOwnProperty('accountName') ? data.accountName : undefined ;
+            const regNum: string | undefined = utils.matchFieldValues(data, '100398');
+            const taxId: string | undefined = utils.matchFieldValues(data, '100420');
+            const duns_Number: string | undefined = utils.matchFieldValues(data, '100421');
+            
+            
             console.log(`### email: ${email}, CompanyName: ${companyName} ###`);
-            
-            
-            
-            let regNum: string = utils.matchFieldValues(data, '100398');
-            let taxId: string = utils.matchFieldValues(data, '100420');
-            let duns_Number: string = utils.matchFieldValues(data, '100421');
-
-
             //UID 존재 여부 확인 및 UID 발급 요청, return UID 값
-            const UID = await ContactService.Check_UID(convertCountry(data.country), regNum, taxId, duns_Number);
+            const UID = await ContactService.Check_UID(convertCountry(data.country), companyName, regNum, taxId, duns_Number);
 
             //Contact Data Update
 

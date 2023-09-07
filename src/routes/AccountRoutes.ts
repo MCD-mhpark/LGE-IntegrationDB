@@ -7,6 +7,4 @@ router.post('/update', AccountController.DB_to_Account);
 
 
 
-
-
 export default router;
