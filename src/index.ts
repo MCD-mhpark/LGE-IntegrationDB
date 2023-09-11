@@ -1,5 +1,5 @@
 import './pre-start'; // Must be the first import
-import logger from '@src/public/modules/jet-logger';
+import logger from 'jet-logger';
 import server from './server';
 import EnvVars from '@src/constants/EnvVars';
 

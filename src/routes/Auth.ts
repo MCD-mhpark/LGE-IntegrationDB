@@ -1,5 +1,5 @@
 import EloquaApi from 'eloqua';
-import EloquaSDkApi from '@src/public/modules/eloqua-sdk/dist/Eloqua';
+import EloquaSDkApi from '../public/modules/eloqua-sdk/dist/Eloqua';
 
 export const lge_eloqua = new EloquaApi({
     siteName: 'LGElectronics',

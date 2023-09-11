@@ -1,6 +1,6 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
 import {ILgToken, ICompanyData, IAccountReq, IAccountRes,IAccountRegister, convertCountry} from "@src/api/interface/interfaceApi"
-import logger from '@src/public/modules/jet-logger';
+import logger from 'jet-logger';
 
 const LgToken: ILgToken = {
     grant_type: 'password',
