@@ -2,15 +2,13 @@ FROM node:18
 
 ENV TZ=Asia/Seoul
 
-ADD . /home/cns-fileUpload/
-WORKDIR /home/cns-fileUpload/
+WORKDIR /home/LG_IntegrationDB/
+ADD . /home/LG_IntegrationDB/
 
-RUN npm install
+RUN npm ci
 RUN npm install -g pm2 
 
-# TypeScript를 빌드합니다. (tsconfig.json 파일을 작성해야 합니다.)
 RUN npm run build
-RUN npm install -g pm2
 
 EXPOSE 4001
 
