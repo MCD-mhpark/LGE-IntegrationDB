@@ -1,5 +1,6 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
 import {ILgToken, ICompanyData, IAccountReq, IAccountRes,IAccountRegister, convertCountry} from "@src/api/interface/interfaceApi"
+import logger from '@src/public/modules/jet-logger';
 
 const LgToken: ILgToken = {
     grant_type: 'password',
@@ -39,7 +40,7 @@ async function GetToken():Promise<any> {
             }
         })
         .catch(function (error):AxiosError<any> {            
-            console.log({
+            logger.err({
                 "error" : "LG_API 토큰 값을 받아오지 못하였습니다.",
                 "response_msg" : [error]
             });
@@ -115,13 +116,13 @@ export const AccountProvide = async (data: IAccountReq):Promise<any> => {
           }
     })
     .then(function (response):AxiosResponse<any> {
-        console.log(response.data);
+        //logger.info(response.data);
         const R = response.data;
         if(R.hasOwnProperty('result') == false && R.nowPage == null) throw new Error (R.message);
         return R
     })
     .catch (function (error):AxiosError<any> {                        
-        console.log({
+        logger.err({
             "error" : "Account 생성 및 변경 목록 전송 API 오류가 발생하였습니다.",
             "response_msg" : [error.response ? JSON.stringify(error.response.data) : error]
         });

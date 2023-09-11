@@ -1,14 +1,21 @@
 import express, { Request, Response } from "express";
-
 import { Contact, IReqEloqua } from "@src/models/ContactDTO";
 import ContactService from "@src/services/ContactService"
 import {convertCountry} from "@src/api/interface/interfaceApi"
 import {AccountSingleResult} from "@src/api/Lg_Api"
 import * as utils from "@src/util/etc_function";
 
-const test = async(req: Request, res: Response): Promise<any> =>{
+import logger from 'jet-logger';
 
-    console.log("성공성공성공성공성공");
+// logger.settings.filepath = './logs/contact/jet-logger.log'
+
+const test = async(req: Request, res: Response): Promise<any> =>{
+    console.log(process.env.JET_LOGGER_FILEPATH);
+    
+    logger.info('contact 성공성공성공성공성공');
+    console.log("12contact 성공성공성공성공성공");
+    console.log("12contact 성공성공성공성공성공");
+    console.log("12contact 성공성공성공성공성공");
     
     return res.status(200).json({
         message: "통신 성공"
@@ -19,34 +26,33 @@ const test = async(req: Request, res: Response): Promise<any> =>{
 /*
 * 전 날 C_DateModified 조회 Contact 기준
 * KR => 국가 = KR && 사업자등록번호 != null
-* Global_T => 국가 = Global 이면 TaxID != null
-* Global_D => 국가 = Global 이면 DunsNumber != null
+* Global => 국가 = Global 이면 TaxID != null
 */
 const modified_Contact = async(req: Request, res: Response): Promise<void> => {
     
     try {
         
-        //1. 전 날 C_DateModified이면서 code 조건: KR, Global_D, Global_T
+        //1. 전 날 C_DateModified AND C_Country, 사업자등록번호, TaxID != NULL  code 조건: KR, Global
         const resdata = await ContactService.Get_ContactList("KR");
         const contactData: Contact[] = resdata.elements;
 
         //* 1000 건 이상 조회 될때 페이지 처리 해야함
-        console.log(resdata.total);
+        logger.info(resdata.total);
         
 
-        //2. UID 조회 (KR: 국가코드 + 사업자 등록번호, Global: 국가코드 + Tax ID or Duns N)
+        //2. UID 조회 (KR: 국가코드 + 사업자 등록번호, Global: 국가코드 + Tax ID)
         for(const data of contactData){
 
             const email = data.emailAddress;
             const companyName: string | undefined = data.hasOwnProperty('accountName') ? data.accountName : undefined ;
             const regNum: string | undefined = utils.matchFieldValues(data, '100398');
             const taxId: string | undefined = utils.matchFieldValues(data, '100420');
-            const duns_Number: string | undefined = utils.matchFieldValues(data, '100421');
+            //const duns_Number: string | undefined = utils.matchFieldValues(data, '100421');
             
             
             console.log(`### email: ${email}, CompanyName: ${companyName} ###`);
             //UID 존재 여부 확인 및 UID 발급 요청, return UID 값
-            const UID = await ContactService.Check_UID(convertCountry(data.country), companyName, regNum, taxId, duns_Number);
+            const UID = await ContactService.Check_UID(convertCountry(data.country), companyName, regNum, taxId);
 
             //Contact Data Update
 

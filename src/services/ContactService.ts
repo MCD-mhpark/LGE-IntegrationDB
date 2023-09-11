@@ -3,7 +3,7 @@ import { IReqEloqua } from "@src/models/ContactDTO";
 import {AccountSingleResult, AccountRegister} from "@src/api/Lg_Api"
 import {IAccountRegister} from "@src/api/interface/interfaceApi"
 import * as utils from "@src/util/etc_function";
-
+import logger from 'jet-logger';
 
 //Contact 조건에 맞게 Search List
 const Get_ContactList = async(code:string): Promise<any> => {
@@ -15,25 +15,26 @@ const Get_ContactList = async(code:string): Promise<any> => {
     queryString.depth = 'complete'
 
     if(code = "KR"){
-        queryString.search = "C_DateModified>'2023-09-03 00:00:00'C_DateModified<'2023-09-04 23:59:59'C_Country='South Korea'C_KR_Business_Registration_Number1!=''"
+        //C_Country = South Korea && 사업자 등록번호
+        queryString.search = `C_DateModified>'2023-09-03 00:00:00'C_DateModified<'2023-09-04 23:59:59'C_Country="South Korea"C_KR_Business_Registration_Number1!=""`
 
-    }else if(code = "Global_T"){
-        queryString.search = "C_DateModified>'2023-09-03 00:00:00'C_DateModified<'2023-09-04 23:59:59'C_Country!='South Korea'C_Tax_ID1!=''"
-    }else if(code = "Global_D"){
-        queryString.search = "C_DateModified>'2023-09-03 00:00:00'C_DateModified<'2023-09-04 23:59:59'C_Country!='South Korea'C_DUNS_Number1!=''"
+    }else if(code = "Global"){
+        //C_Country != NULL && South Korea && TaxID != NULL
+        queryString.search = `C_DateModified>'2023-09-03 00:00:00'C_DateModified<'2023-09-04 23:59:59'C_Country!="South Korea"C_Country!=""C_Tax_ID1!=""`
     }
+
     console.log(queryString);
     
     return await lge_eloqua.contacts.getAll(queryString).then((result: any) => {
         return result
     }).catch((err: any) => {
-        console.log('에러 발생 서비스');
+        logger.err('### Get_ContactList ERROR 발생 ###');
         throw err
     });
     
 }
 
-const Check_UID = async(countryCode:string, companyName?:string, regNum?: string, taxId? :string, duns_number?:string ): Promise<any> => {
+const Check_UID = async(countryCode:string, companyName?:string, regNum?: string, taxId? :string): Promise<any> => {
     
     let queryString: IReqEloqua = { search: '', depth:'' };
     let result = { uID: '', company: ''};
@@ -46,8 +47,7 @@ const Check_UID = async(countryCode:string, companyName?:string, regNum?: string
     }else{
         if(taxId){
             queryString.search =  `M_Country_Code1='${countryCode}'M_Tax_ID1='${taxId}'`
-        }
-        queryString.search =  `M_Country_Code1='${countryCode}'M_DUNS_Number1='${duns_number}'`           
+        }        
     }
 
     try {
@@ -63,7 +63,7 @@ const Check_UID = async(countryCode:string, companyName?:string, regNum?: string
             
         // 2. 없을 경우 발급요청(companyName != null) 후 10초 대기
         }else if (eloquaAccount.elements.length == 0 && companyName !== undefined){
-            console.log(`### UID 발급 요청 ${countryCode}, ${companyName}, ${regNum} ${taxId} ${duns_number} ###`);
+            console.log(`### UID 발급 요청 ${countryCode}, ${companyName}, ${regNum} ${taxId} ###`);
             let data: IAccountRegister = {
                 Account: [
                     {
@@ -72,7 +72,6 @@ const Check_UID = async(countryCode:string, companyName?:string, regNum?: string
                         AccountName: companyName,
                         CompanyRegistrationNumber: regNum,
                         TaxId : taxId,
-                        DunsNumber: duns_number
                     }
                 ]
             }

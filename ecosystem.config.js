@@ -12,8 +12,12 @@ module.exports = {
     env: {
     NODE_ENV: 'production',
     },
-   instances: 1,
+   instances: 2,
    exec_mode: "cluster",
+
+   //log_date_format: "YYYY-MM-DD HH:mm:ss",
+   output: "./logs/pm2/lg_integrationDB.log",
+   error: "./logs/pm2/lg_integrationDB-error.log"
   }
 ],
 };

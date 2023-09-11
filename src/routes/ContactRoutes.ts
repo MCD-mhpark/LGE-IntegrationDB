@@ -1,20 +1,23 @@
-import express, {Request, Response} from 'express';
-import HttpStatusCodes from '@src/constants/HttpStatusCodes';
-
+import express, {Request, Response, NextFunction} from 'express';
 import ContactController from '../controller/ContactController' 
 import {lge_eloqua , lgeSdk_eloqua} from '@src/routes/Auth';
-
-import * as LgApi from "@src/api/Lg_Api"
 import * as utils from "@src/util/etc_function"
+import logger from 'jet-logger';
+
+
 
 import {ILgToken, ICompanyData, IAccountReq, IAccountRes ,convertCountry} from "@src/api/interface/interfaceApi"
 
 const router = express.Router();
+function logPath (req: Request, res: Response, next:NextFunction) {
+    logger.settings.filepath = `./logs/contact/${utils.getToday()}_jet-logger.log`;
+    next();
+}
 
 
-router.get('/test', ContactController.test);
+router.get('/test', logPath , ContactController.test);
 
-router.post('/modified', ContactController.modified_Contact);
+router.post('/modified', logPath, ContactController.modified_Contact);
 
 
 
@@ -35,22 +38,22 @@ router.get('/tokentest', async (req:Request, res:Response):Promise<void> => {
   
 })
 
-router.post('/testest', async (req:Request, res:Response):Promise<void> => {
-    try{
-        let data: IAccountReq = {
-            LGCompanyDivision:"EKHQ",
-            SourceSystemDivision:"MAT", 
-            perCount: 20,
-            nowPage: 3, 
-            beginDateTime:"2023-08-01 16:00",
-            endDateTime: "2023-08-24 16:00"
-        };
-        let aa = LgApi.AccountProvide(data);
-        res.json(aa);
-    }catch(error){
-        res.json(error)
-    }
-});
+// router.post('/testest', async (req:Request, res:Response):Promise<void> => {
+//     try{
+//         let data: IAccountReq = {
+//             LGCompanyDivision:"EKHQ",
+//             SourceSystemDivision:"MAT", 
+//             perCount: 20,
+//             nowPage: 3, 
+//             beginDateTime:"2023-08-01 16:00",
+//             endDateTime: "2023-08-24 16:00"
+//         };
+//         let aa = LgApi.AccountProvide(data);
+//         res.json(aa);
+//     }catch(error){
+//         res.json(error)
+//     }
+// });
 
 
 router.post('/testest1', async (req, res) => {

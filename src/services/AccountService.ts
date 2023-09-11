@@ -1,22 +1,22 @@
 import { lge_eloqua, lgeSdk_eloqua } from '@src/routes/Auth';
 import { IAccountRes } from "@src/api/interface/interfaceApi"
 import { Account, AccountForm } from "@src/models/AccountDTD"
+import logger from 'jet-logger';
 
 
-//Account Search
 const integrationAccount = async (IntgrationDB_AccountData: IAccountRes): Promise<any> => {
 
     try {
 
         let resultarr = [];
-
         const AccountArr: Account[] = IntgrationDB_AccountData.result.Account;
         const formId = 8930;
-        console.time('time');
+        //console.time('time');
 
         //result Data .length Insert logic
         for (const account of AccountArr){
 
+            //Form 형식에 맞게 Data Convert
             let converFormData = new AccountForm(account);
             
             //Eloqua Form Insert 비동기 처리 
@@ -26,14 +26,19 @@ const integrationAccount = async (IntgrationDB_AccountData: IAccountRes): Promis
         }
         
         //resultarr에 담긴 Promise를 병렬 처리
-        const resData = await Promise.all(resultarr);
-        console.timeEnd('time');
-
-        console.log(resData);
+        const resData = await Promise.allSettled(resultarr);
+        
+         // 로그에 reject 된 Promise 결과 기록
+        resData.forEach((result, index) => {
+            if (result.status === 'rejected') {
+                logger.err(`Promise_allSettled at ${index} rejected with reason: ${JSON.stringify(result, null, 2)}`);
+            }
+        });
+        //console.timeEnd('time');
         return resData
 
     } catch (error) {
-        console.log({
+        logger.err({
             "error" : "integrationAccount service Error",
             "response_msg" : error
         });
