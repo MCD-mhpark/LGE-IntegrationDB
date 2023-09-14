@@ -16,14 +16,13 @@ const Get_ContactList = async(code:string): Promise<any> => {
 
     if(code = "KR"){
         //C_Country = South Korea && 사업자 등록번호
-        queryString.search = `C_DateModified>'2023-09-03 00:00:00'C_DateModified<'2023-09-04 23:59:59'C_Country="South Korea"C_KR_Business_Registration_Number1!=""`
-
+        //queryString.search = `C_DateModified>'2023-09-03 00:00:00'C_DateModified<'2023-09-04 23:59:59'C_Country="South Korea"C_KR_Business_Registration_Number1!=""`
+        //test
+        queryString.search = `C_Country="South Korea"C_KR_Business_Registration_Number1!=""emailAddress=test*`
     }else if(code = "Global"){
         //C_Country != NULL && South Korea && TaxID != NULL
         queryString.search = `C_DateModified>'2023-09-03 00:00:00'C_DateModified<'2023-09-04 23:59:59'C_Country!="South Korea"C_Country!=""C_Tax_ID1!=""`
     }
-
-    console.log(queryString);
     
     return await lge_eloqua.contacts.getAll(queryString).then((result: any) => {
         return result
@@ -38,12 +37,10 @@ const Check_UID = async(countryCode:string, companyName?:string, regNum?: string
     
     let queryString: IReqEloqua = { search: '', depth:'' };
     let result = { uID: '', company: ''};
-    
-    queryString.depth = 'Minimal'
+    queryString.depth = 'complete'
 
     if(countryCode = 'KR'){
         queryString.search =  `M_Country_Code1='${countryCode}'M_Business_Registration_Number1='${regNum}'`
-        
     }else{
         if(taxId){
             queryString.search =  `M_Country_Code1='${countryCode}'M_Tax_ID1='${taxId}'`
@@ -51,19 +48,21 @@ const Check_UID = async(countryCode:string, companyName?:string, regNum?: string
     }
 
     try {
-
+        console.log(queryString);
         // 1. UID 존재 여부 확인
         const eloquaAccount = await lge_eloqua.accounts.getAll(queryString);
 
         if(eloquaAccount.elements.length !== 0){
+            console.log(`### Eloqua UID 존재 ${countryCode}, ${companyName}, ${regNum}, ${taxId} ###`);
+            console.log(utils.matchFieldValues(eloquaAccount.elements[0], '100424'));
+            
             result.uID = utils.matchFieldValues(eloquaAccount.elements[0], '100424') //100424: Account Fields ID
             result.company =  eloquaAccount.elements[0].name
-            console.log(`### Account 조회 데이터 ${result} ###`);
             return result;
             
         // 2. 없을 경우 발급요청(companyName != null) 후 10초 대기
         }else if (eloquaAccount.elements.length == 0 && companyName !== undefined){
-            console.log(`### UID 발급 요청 ${countryCode}, ${companyName}, ${regNum} ${taxId} ###`);
+            console.log(`### UID 발급 요청 ${countryCode}, ${companyName}, ${regNum}, ${taxId} ###`);
             let data: IAccountRegister = {
                 Account: [
                     {
@@ -78,14 +77,14 @@ const Check_UID = async(countryCode:string, companyName?:string, regNum?: string
             console.log(data);
 
             //발급 API
-            const functionAccountR = await AccountRegister(data)
-            .then((value) => {
-                console.log(value);
-                //setTimeout(sayHi, 10000, "홍길동", "안녕하세요."); 
-                AccountSingleResult
-            }).catch(error => {
-                throw error;
-              });
+            // const functionAccountR = await AccountRegister(data)
+            // .then((value) => {
+            //     console.log(value);
+            //     //setTimeout(sayHi, 10000, "홍길동", "안녕하세요."); 
+            //     AccountSingleResult
+            // }).catch(error => {
+            //     throw error;
+            //   });
 
             // if (functionAccountR) {
             //     tasks.push(functionAPromise);
@@ -110,7 +109,10 @@ const Check_UID = async(countryCode:string, companyName?:string, regNum?: string
     }
     
 }
-
+// let converFormData = new AccountForm(account);
+            
+//             //Eloqua Form Insert 비동기 처리 
+//             const Iresult = lge_eloqua.contacts.form_Create(formId, converFormData);
 
 //Contact Data Form 조건에 맞게 Insert
 const Insert_Form = async(): Promise<any> => {

@@ -1,3 +1,5 @@
+import * as utils from "@src/util/etc_function";
+
 export interface IReqEloqua {
     search: string;
     depth: string;
@@ -93,5 +95,175 @@ export class Contact {
       this.mobilePhone = data.mobilePhone;
       this.postalCode = data.postalCode;
       this.subscriptionDate = data.subscriptionDate;
+  }
+}
+
+
+class FormFieldValue {
+  constructor(public type: string, public id: string, public name: string, public value: any) {}
+}
+
+export class ContactForm {
+  type: string;
+  fieldValues: FormFieldValue[];
+
+  constructor(contact: Contact) {
+      this.type = "FormData";
+      this.fieldValues = [
+          //Last Name
+          new FormFieldValue("FieldValue", "159226", "Account UID", contact.lastName),
+          //First Name 
+          new FormFieldValue("FieldValue", "159226", "Account UID", contact.firstName),
+          //Full Name
+          new FormFieldValue("FieldValue", "159226", "Account UID", this.getFieldValueById(contact, "100172")),
+          //Business Phone
+          new FormFieldValue("FieldValue", "159226", "Account UID", contact.businessPhone),
+          //Mobile Phone
+          new FormFieldValue("FieldValue", "159226", "Account UID", contact.mobilePhone),
+          //Email Address
+          new FormFieldValue("FieldValue", "159226", "Account UID", contact.emailAddress),
+          //BU별 Seniority
+          new FormFieldValue("FieldValue", "159226", "Account UID", contact.lastName),
+          //Department
+          new FormFieldValue("FieldValue", "159226", "Account UID", this.getFieldValueById(contact, "100238")),
+          //Date Created
+          new FormFieldValue("FieldValue", "159226", "Account UID", this.formatUnixTimestamp(contact.createdAt)),
+          //Date Modified
+          new FormFieldValue("FieldValue", "159226", "Account UID", this.formatUnixTimestamp(contact.updatedAt)),
+          //Marketing Event
+          new FormFieldValue("FieldValue", "159226", "Account UID", this.getFieldValueById(contact, "100203")),
+          //Company Name
+          new FormFieldValue("FieldValue", "159226", "Account UID", contact.accountName),
+          //City
+          new FormFieldValue("FieldValue", "159226", "Account UID", contact.city),
+
+          new FormFieldValue("FieldValue", "159226", "Account UID", contact.lastName)
+          new FormFieldValue("FieldValue", "159226", "Account UID", contact.lastName)
+          new FormFieldValue("FieldValue", "159226", "Account UID", contact.lastName)
+          new FormFieldValue("FieldValue", "159226", "Account UID", contact.lastName)
+          new FormFieldValue("FieldValue", "159226", "Account UID", contact.lastName)
+      ];
+  }
+  
+  private getFieldValueById(contact: Contact, id: string): string | undefined {
+    const fieldValue = contact.fieldValues.find((fv) => fv.id === id);
+    return fieldValue ? fieldValue.value : undefined;
+  }
+
+  private formatUnixTimestamp(unixTimestamp:any): string {
+    if (!unixTimestamp) return "";
+    const date = new Date(parseInt(unixTimestamp) * 1000);
+    return date.toISOString().slice(0, 10); // yyyy-mm-dd 형식으로 변환
+  }
+
+
+  //Business Unit
+  private getFieldValueByType( contact:Contact, businessUnit:string, field:string ): string | undefined {
+    const BU_FieldValues:any = {
+      "AS": {
+        //AS_Authority1(Seniority)
+        Seniority: "100219",
+        //AS_Authority2(Job Function)
+        JobFunction: "100323",
+      },
+      "IT": {
+        //IT_Authority1(Seniority)
+        Seniority: "100269",
+        //IT_Authority2(Job Function)
+        JobFunction: "100214",
+      },
+      "ID": {
+        //ID_Authority1(Seniority)
+        Seniority: "100262",
+        //ID_Authority2(Job Function)
+        JobFunction: "100322",
+      },
+      "CM": {
+        //CM_Authority1(Seniority)
+        Seniority: "100288",
+        //CM_Authority2(Job Function)
+        JobFunction: "100325",
+      },
+      "CLS": {
+        Seniority: "100335",
+        //CLS_Authority2(Job Function)
+        JobFunction: "100435",
+      },
+      "Solution": {
+        Seniority: "100335",
+        JobFunction: "100435",
+      },
+      "Kitchen Solution": {
+        Seniority: "100335",
+        JobFunction: "100435",
+      }
+    };
+    //businessUnit과 field에 대한 매핑 가져오기
+    const BU = BU_FieldValues[businessUnit];
+    if (BU && BU[field]) {
+      return this.getFieldValueById(contact, BU[field]);
+    } else {
+      return "";
+    }
+    // switch (businessUnit) {
+    //   case "AS":
+    //     switch (field){
+    //       case "Seniority":
+    //         return this.getFieldValueById(contact, "100035"); // AS
+    //       case "Job Function":
+    //         return this.getFieldValueById(contact, "100035"); // AS
+    //     }
+    //     break;
+    //   case "IT":
+    //     switch (field){
+    //       case "Seniority":
+    //         return this.getFieldValueById(contact, "100035"); // AS
+    //       case "Job Function":
+    //         return this.getFieldValueById(contact, "100035"); // AS
+    //     }
+    //     break;
+    //   case "ID":
+    //     switch (field){
+    //       case "Seniority":
+    //         return this.getFieldValueById(contact, "100035"); // AS
+    //       case "Job Function":
+    //         return this.getFieldValueById(contact, "100035"); // AS
+    //     }
+    //     break;
+    //   case "CM":
+    //     switch (field){
+    //       case "Seniority":
+    //         return this.getFieldValueById(contact, "100035"); // AS
+    //       case "Job Function":
+    //         return this.getFieldValueById(contact, "100035"); // AS
+    //     }
+    //     break;
+    //   case "CLS":
+    //     switch (field){
+    //       case "Seniority":
+    //         return this.getFieldValueById(contact, "100035"); // AS
+    //       case "Job Function":
+    //         return this.getFieldValueById(contact, "100035"); // AS
+    //     }
+    //     break;
+    //   case "Solution":
+    //     switch (field){
+    //       case "Seniority":
+    //         return this.getFieldValueById(contact, "100035"); // AS
+    //       case "Job Function":
+    //         return this.getFieldValueById(contact, "100035"); // AS
+    //     }
+    //     break;
+    //   case "Kitchen Solution":
+    //     switch (field){
+    //       case "Seniority":
+    //         return this.getFieldValueById(contact, "100035"); // AS
+    //       case "Job Function":
+    //         return this.getFieldValueById(contact, "100035"); // AS
+    //     }
+    //     break;
+    //   default:
+    //     return "";
+    // }
   }
 }

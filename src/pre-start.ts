@@ -11,6 +11,7 @@ import { parse } from 'ts-command-line-args';
 
 //console.log(process.env.NODE_ENV);
 // TypeScript pm2 설정시 -r tsconfig-paths/register 옵션이 안먹어서 강제로 설정.
+
 if (process.env.NODE_ENV === 'production') {
        require('module-alias/register');
 }

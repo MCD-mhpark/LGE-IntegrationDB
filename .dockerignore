@@ -1,8 +1,0 @@
-.gitignore
-.dockerignore
-.git
-node_modules/
-dist/
-*.md
-*.sh
-*.yml

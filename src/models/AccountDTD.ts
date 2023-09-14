@@ -11,27 +11,27 @@ export interface Account {
     DetailAddr: string | null // 상세주소
 }
 
-class FieldValue {
+class FormFieldValue {
     constructor(public type: string, public id: string, public name: string, public value: any) {}
 }
 
 export class AccountForm {
     type: string;
-    fieldValues: FieldValue[];
+    fieldValues: FormFieldValue[];
 
     constructor(account: Account) {
         this.type = "FormData";
         this.fieldValues = [
-            new FieldValue("FieldValue", "159226", "Account UID", account.UID),
-            new FieldValue("FieldValue", "159227", "CountryCode", account.CountryCode),
-            new FieldValue("FieldValue", "159228", "BizNo", account.BizNo),
-            new FieldValue("FieldValue", "159229", "TaxID", account.TaxId),
-            new FieldValue("FieldValue", "159230", "DUNSNo", account.DUNSNo),
-            new FieldValue("FieldValue", "159231", "CompName", account.CompName),
-            new FieldValue("FieldValue", "159232", "CompNameEng", account.CompNameEng),
-            new FieldValue("FieldValue", "159233", "Zip", account.Zip),
-            new FieldValue("FieldValue", "159234", "CorpNo", account.CorpNo),
-            new FieldValue("FieldValue", "159235", "DetailAddr", account.DetailAddr),
+            new FormFieldValue("FieldValue", "159226", "Account UID", account.UID),
+            new FormFieldValue("FieldValue", "159227", "CountryCode", account.CountryCode),
+            new FormFieldValue("FieldValue", "159228", "BizNo", account.BizNo),
+            new FormFieldValue("FieldValue", "159229", "TaxID", account.TaxId),
+            new FormFieldValue("FieldValue", "159230", "DUNSNo", account.DUNSNo),
+            new FormFieldValue("FieldValue", "159231", "CompName", account.CompName),
+            new FormFieldValue("FieldValue", "159232", "CompNameEng", account.CompNameEng),
+            new FormFieldValue("FieldValue", "159233", "Zip", account.Zip),
+            new FormFieldValue("FieldValue", "159234", "CorpNo", account.CorpNo),
+            new FormFieldValue("FieldValue", "159235", "DetailAddr", account.DetailAddr),
         ];
     }
 }

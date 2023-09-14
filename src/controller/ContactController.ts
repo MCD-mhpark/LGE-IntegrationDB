@@ -37,31 +37,35 @@ const modified_Contact = async(req: Request, res: Response): Promise<void> => {
         const contactData: Contact[] = resdata.elements;
 
         //* 1000 건 이상 조회 될때 페이지 처리 해야함
+        console.time("Contact KR IntegrationDB")
         logger.info(resdata.total);
         
 
         //2. UID 조회 (KR: 국가코드 + 사업자 등록번호, Global: 국가코드 + Tax ID)
         for(const data of contactData){
 
+            console.log('asdfasdfasdf', );
+            
             const email = data.emailAddress;
             const companyName: string | undefined = data.hasOwnProperty('accountName') ? data.accountName : undefined ;
             const regNum: string | undefined = utils.matchFieldValues(data, '100398');
             const taxId: string | undefined = utils.matchFieldValues(data, '100420');
             //const duns_Number: string | undefined = utils.matchFieldValues(data, '100421');
             
-            
-            console.log(`### email: ${email}, CompanyName: ${companyName} ###`);
+            logger.info(`### email: ${email}, CompanyName: ${companyName}, regNum: ${regNum}, taxId: ${taxId}  ###`);
             //UID 존재 여부 확인 및 UID 발급 요청, return UID 값
+            logger.info(`### CheckUID START ###`);
             const UID = await ContactService.Check_UID(convertCountry(data.country), companyName, regNum, taxId);
+            console.log(UID);
 
-            //Contact Data Update
+            //convert contact data
+            
 
             //Contact Data Form Insert
-   
-            //AccountSingleResult
+
         }
 
-
+        console.timeEnd;("Contact KR IntegrationDB")
 
         //const sendContactData = await ContactService.Insert_Form();
         
@@ -69,7 +73,7 @@ const modified_Contact = async(req: Request, res: Response): Promise<void> => {
         //modidfed 된 컨택 
         res.json(contactData);
     } catch (error) {
-
+        console.log('error', error);
         console.log('에러 발생 컨트롤러');
         res.json(error);
 

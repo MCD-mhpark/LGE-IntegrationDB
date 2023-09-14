@@ -16,10 +16,13 @@ export function yesterday_getDateTime(){
 
 //Custom field 매칭
 export function matchFieldValues(data: any, id: string) {
-    return data.fieldValues.map((fv: any) => {
-        if(fv.id === id)
-            return fv.value; // 값이 없으면 undefined로 return
-    })
+    let value:any
+    data.fieldValues.forEach((fv: any) => {
+        if (fv.id === id) {
+            value = fv.value;
+        }
+    });
+    return value;
 }
 
 //YYYY-MM-DD
