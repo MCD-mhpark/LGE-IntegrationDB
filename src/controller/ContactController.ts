@@ -15,9 +15,12 @@ const test = async(req: Request, res: Response): Promise<any> =>{
     logger.info('contact 성공성공성공성공성공');
     console.log("12contact 성공성공성공성공성공");
     console.log("12contact 성공성공성공성공성공");
-    console.log("12contact 성공성공성공성공성공");
-    
-    return res.status(200).json({
+
+    //res.header("Access-Control-Allow-Origin", "https://b2bmkt.lge.com");
+    // res.header("Access-Control-Allow-Origin", "http://127.0.0.1:5500");
+    // res.header("Access-Control-Allow-Headers", "X-Requested-With");
+    // res.header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
+    return res.json({
         message: "통신 성공"
     })
 }
@@ -59,7 +62,7 @@ const modified_Contact = async(req: Request, res: Response): Promise<void> => {
             console.log(UID);
 
             //convert contact data
-            
+
 
             //Contact Data Form Insert
 

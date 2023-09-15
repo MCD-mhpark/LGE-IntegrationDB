@@ -5,7 +5,7 @@ import logger from 'jet-logger';
 const router = express.Router();
 
 function logPath (req: Request, res: Response, next:NextFunction) {
-    logger.settings.filepath = `./logs/account/${utils.getToday()}_jet-logger.log`
+    logger.settings.filepath = `./LGE_logs/account/${utils.getToday()}_jet-logger.log`
     next();
 }
 

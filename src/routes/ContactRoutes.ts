@@ -1,19 +1,24 @@
+import cors from "cors";
 import express, {Request, Response, NextFunction} from 'express';
 import ContactController from '../controller/ContactController' 
 import {lge_eloqua , lgeSdk_eloqua} from '@src/routes/Auth';
 import * as utils from "@src/util/etc_function";
-import cors from "cors";
-import {searchKoreaCompany, searchCompany} from "@src/api/singlex_Api";
+import {api_searchCompany} from "@src/api/singlex_Api";
 import logger from 'jet-logger';
 import {ILgToken, ICompanyData, IAccountReq, IAccountRes ,convertCountry} from "@src/api/interface/interfaceApi"
 
-const whitelist = ['https://b2bmkt.lge.com'];
+const whitelist = ['https://b2bmkt.lge.com', 'http://127.0.0.1:5500'] ;
 // const corsOptons : cors.CorsOptions = {
 //     origin: whitelist,
 //     credentials: true,
 //     optionsSuccessStatus: 200
 // }
-const corsOptons = {
+// const corsOptions = {
+//     origin: "https://b2bmkt.lge.com", // 허용할 origin을 여기에 지정하세요.
+//     //credentials: true, // 인증 정보를 포함할 경우 true로 설정하세요.
+//     optionsSuccessStatus: 200
+//   };
+const corsOptions = {
 	origin : function (origin:any, cb:any){
 		if(whitelist.indexOf(origin) !== -1){
 			console.log(`cors: ${origin} >> pass`);
@@ -25,27 +30,28 @@ const corsOptons = {
 	},
 	credential: true
 }
-
 const router = express.Router();
+
+
 function logPath (req: Request, res: Response, next:NextFunction) {
-    logger.settings.filepath = `./logs/contact/${utils.getToday()}_jet-logger.log`;
+    logger.settings.filepath = `./LGE_logs/contact/${utils.getToday()}_jet-logger.log`;
     next();
 }
 
 function slogPath (req: Request, res: Response, next:NextFunction) {
-    logger.settings.filepath = `./logs/singlex/${utils.getToday()}_jet-logger.log`;
+    logger.settings.filepath = `./LGE_logs/singlex/${utils.getToday()}_jet-logger.log`;
     next();
 }
 
-router.get('/test', logPath , ContactController.test);
+router.post('/test' , ContactController.test);
 
 router.post('/modified', logPath, ContactController.modified_Contact);
 
-router.post('/gpSinglexAp/kr', cors(corsOptons) ,slogPath, async (req: Request, res: Response) => {
-    logger.info(req.body);
+router.post('/gpSinglexAPI', async (req: Request, res: Response):Promise<void> => {
+    console.log(req.body);
     try{
-        let result = await searchKoreaCompany(req.body.type, req.body.value);
-        console.log('result', result);
+        let result = await api_searchCompany(req.body.type, req.body.url ,req.body.value);
+        //console.log('result', result);
         res.json(result);
     }catch(error){
         logger.err('### gp error /gpSinglexAp/kr api ###');
@@ -53,14 +59,15 @@ router.post('/gpSinglexAp/kr', cors(corsOptons) ,slogPath, async (req: Request, 
         console.log(error);
         res.json(error);
     }
+    //res.json("성공")
 
 });
 
-router.post('/gpSinglexApi/global', cors(corsOptons) , slogPath, async (req: Request, res: Response) => {
+router.post('/gpSinglexApi/global' , slogPath, async (req: Request, res: Response) => {
     logger.info(req.body);
     try{
-        let result = await searchCompany(req.body.type, req.body.value, req.body.countryCode);
-        res.json(result);
+        //let result = await searchCompany(req.body.type, req.body.value, req.body.countryCode);
+        //res.json(result);
     }catch(error){
         logger.err('### gp error /gpSinglexAp/global api ###');
         logger.err('error', error);
