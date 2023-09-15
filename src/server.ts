@@ -42,45 +42,47 @@ if (EnvVars.NodeEnv === NodeEnvs.Production) {
   app.use(helmet());
 }
 
-const whitelist = ['https://b2bmkt.lge.com', 'http://127.0.0.1:5500'] ;
+// const whitelist = ['https://b2bmkt.lge.com', 'http://127.0.0.1:5500'] ;
 
-const corsOptions = {
-	origin : function (origin:any, cb:any){
-		if(whitelist.indexOf(origin) !== -1){
-			console.log(`cors: ${origin} >> pass`);
-			cb(null, true);
-		}else{
-			console.log(`cors: ${origin} >> false`);
-			cb(new Error("not allow origin Error"))
-		}
-	},
-	credential: true
-}
+// const corsOptions = {
+// 	origin : function (origin:any, cb:any){
+// 		if(whitelist.indexOf(origin) !== -1){
+// 			console.log(`cors: ${origin} >> pass`);
+// 			cb(null, true);
+// 		}else{
+// 			console.log(`cors: ${origin} >> false`);
+// 			cb(new Error("not allow origin Error"))
+// 		}
+// 	},
+// 	credential: true
+// }
 
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions));
 
-// const allowedOrigins = ["http://127.0.0.1:5500", "https://b2bmkt.lge.com"];
+const allowedOrigins = ["http://127.0.0.1:5500", "https://b2bmkt.lge.com"];
 
-// app.use((req:Request, res:Response, next) => {
-// // 클라이언트의 Origin 헤더 값을 가져옵니다.
-// //   let origin = req.headers.origin;
+app.use((req:Request, res:Response, next) => {
+// 클라이언트의 Origin 헤더 값을 가져옵니다.
+let origin:any = "";
+origin = req.headers.origin ;
 
-//   // 허용할 도메인들 중에 포함되어 있는지 확인합니다.
-// //   if (allowedOrigins.includes(origin)) {
-//   //   }
+  // 허용할 도메인들 중에 포함되어 있는지 확인합니다.
+  if (allowedOrigins.includes(origin)) {
+    res.header("Access-Control-Allow-Origin", origin);
+  }
   
-//   res.header("Access-Control-Allow-Origin", "https://b2bmkt.lge.com");
-//   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-//   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-//   res.header("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Allow-Origin", origin);
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.header("Access-Control-Allow-Credentials", "true");
 
-//   // preflight 요청(예: OPTIONS 메서드)에 대한 처리
-//   if (req.method === "OPTIONS") {
-//     res.status(200).end();
-//   } else {
-//     next();
-//   }
-// })
+  // preflight 요청(예: OPTIONS 메서드)에 대한 처리
+  if (req.method === "OPTIONS") {
+    res.status(200).end();
+  } else {
+    next();
+  }
+})
 //Add APIs, must be after middleware
 // app.use(Paths.Base, BaseRouter);
 
