@@ -1,5 +1,5 @@
 import { lge_eloqua, lgeSdk_eloqua } from '@src/routes/Auth';
-import { IReqEloqua } from "@src/models/ContactDTO";
+import { Contact, IReqEloqua, ContactForm, IUpdateContact } from "@src/models/ContactDTO";
 import {AccountSingleResult, AccountRegister} from "@src/api/Lg_Api"
 import {IAccountRegister} from "@src/api/interface/interfaceApi"
 import * as utils from "@src/util/etc_function";
@@ -33,10 +33,13 @@ const Get_ContactList = async(code:string): Promise<any> => {
     
 }
 
+//UID 발급 프로세스
 const Check_UID = async(countryCode:string, companyName?:string, regNum?: string, taxId? :string): Promise<any> => {
     
     let queryString: IReqEloqua = { search: '', depth:'' };
-    let result = { uID: '', company: ''};
+    let uResult: { uID: string, company: string }  = { uID: '', company: '' };
+
+
     queryString.depth = 'complete'
 
     if(countryCode = 'KR'){
@@ -53,12 +56,10 @@ const Check_UID = async(countryCode:string, companyName?:string, regNum?: string
         const eloquaAccount = await lge_eloqua.accounts.getAll(queryString);
 
         if(eloquaAccount.elements.length !== 0){
-            console.log(`### Eloqua UID 존재 ${countryCode}, ${companyName}, ${regNum}, ${taxId} ###`);
-            console.log(utils.matchFieldValues(eloquaAccount.elements[0], '100424'));
-            
-            result.uID = utils.matchFieldValues(eloquaAccount.elements[0], '100424') //100424: Account Fields ID
-            result.company =  eloquaAccount.elements[0].name
-            return result;
+            logger.info(`### Eloqua UID 존재 ${countryCode}, ${companyName}, ${regNum}, ${taxId} ###`);
+            //console.log(utils.matchFieldValues(eloquaAccount.elements[0], '100424'));
+            uResult.uID = utils.matchFieldValues(eloquaAccount.elements[0], '100424'); //100424: Account Fields ID
+            uResult.company =  eloquaAccount.elements[0].name;
             
         // 2. 없을 경우 발급요청(companyName != null) 후 10초 대기
         }else if (eloquaAccount.elements.length == 0 && companyName !== undefined){
@@ -99,90 +100,29 @@ const Check_UID = async(countryCode:string, companyName?:string, regNum?: string
             //         }
             //     });
             // }
-            return result
         }
+        
+        return uResult;
 
     } catch (error) {
-        console.error('에러가 발생');
-        console.error(error);
-        throw error;
+        logger.err(`### Check_UID logic Error : ${countryCode}, ${companyName}, ${regNum}, ${taxId} ###`);
+        logger.err(error);
+        return `Check_UID logic Error`;
     }
-    
 }
-// let converFormData = new AccountForm(account);
-            
-//             //Eloqua Form Insert 비동기 처리 
-//             const Iresult = lge_eloqua.contacts.form_Create(formId, converFormData);
 
 //Contact Data Form 조건에 맞게 Insert
-const Insert_Form = async(): Promise<any> => {
-    let id = 8888;
-    let resultform = {
-        type: "FormData",
-        fieldValues: [
-            {
-                "type": "FieldValue",
-                "id": "158358",
-                "name": "Email Address",
-                "value": "asdf@asdf.com" 
-            },
-            {
-                "type": "FieldValue",
-                "id": "158359",
-                "name": "First Name",
-                "value": "LEE"
-            },
-            {
-                "type": "FieldValue",
-                "id": "158360",
-                "name": "Last Name",
-                "value": "test"
-            },
-            {
-                "type": "FieldValue",
-                "id": "158361",
-                "name": "Company",
-                "value": "goldenplanet"
-            },
-            {
-                "type": "FieldValue",
-                "id": "158362",
-                "name": "국가코드",
-                "value": "KR"
-            },
-            {
-                "type": "FieldValue",
-                "id": "158363",
-                "name": "Account UID",
-                "value": "123123"
-            },
-            {
-                "type": "FieldValue",
-                "id": "158364",
-                "name": "KR_Business_Registration_Number",
-                "value": "df45658"
-            },
-            {
-                "type": "FieldValue",
-                "id": "158365",
-                "name": "Tax ID",
-                "value": "1231234"
-            },
-            {
-                "type": "FieldValue",
-                "id": "158366",
-                "name": "DUNS Number",
-                "value": "123123"
-            }
-        ]
-    };
+const Insert_Form = async (contact:Contact, updateContact:IUpdateContact): Promise<any> => {
+    const id = 8888;
+    const convertFormData = new ContactForm(contact, updateContact);
 
-    await lge_eloqua.contacts.form_Create(id, resultform).then((result: any) => {
-        console.log(result);
-        return result
-    }).catch((err: any) => {
-        console.log(err);
-        return err
+    return await lge_eloqua.contacts.form_Create(id, convertFormData).then((result: any) => {
+        //console.log(result);
+        return `${contact.emailAddress}: form insert success`
+    }).catch((error: any) => {
+        logger.err(`### ${contact.emailAddress}: Insert_Form Error`);
+        logger.err(error);
+        return `${contact.emailAddress}: form insert fail`
     });
     
 }

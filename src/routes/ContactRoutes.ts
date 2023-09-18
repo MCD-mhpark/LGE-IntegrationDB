@@ -38,23 +38,25 @@ function logPath (req: Request, res: Response, next:NextFunction) {
     next();
 }
 
+
+router.post('/test' , cors(corsOptions) ,ContactController.test);
+
+router.post('/modified', logPath, ContactController.UID_Process);
+
+
+
 function slogPath (req: Request, res: Response, next:NextFunction) {
     logger.settings.filepath = `./LGE_logs/singlex/${utils.getToday()}_jet-logger.log`;
     next();
 }
-
-router.post('/test' , ContactController.test);
-
-router.post('/modified', logPath, ContactController.modified_Contact);
-
-router.post('/gpSinglexAPI', async (req: Request, res: Response):Promise<void> => {
+router.post('/gpSinglexAPI', cors(corsOptions) , async (req: Request, res: Response):Promise<void> => {
     console.log(req.body);
     try{
         let result = await api_searchCompany(req.body.type, req.body.url ,req.body.value);
         //console.log('result', result);
         res.json(result);
     }catch(error){
-        logger.err('### gp error /gpSinglexAp/kr api ###');
+        logger.err('### gp error /gpSinglexAPI ###');
         logger.err('error', error);
         console.log(error);
         res.json(error);
@@ -62,22 +64,6 @@ router.post('/gpSinglexAPI', async (req: Request, res: Response):Promise<void> =
     //res.json("성공")
 
 });
-
-router.post('/gpSinglexApi/global' , slogPath, async (req: Request, res: Response) => {
-    logger.info(req.body);
-    try{
-        //let result = await searchCompany(req.body.type, req.body.value, req.body.countryCode);
-        //res.json(result);
-    }catch(error){
-        logger.err('### gp error /gpSinglexAp/global api ###');
-        logger.err('error', error);
-        res.json(error);
-    }
-
-});
-
-
-
 
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -103,36 +89,5 @@ router.get('/tokentest', async (req:Request, res:Response):Promise<void> => {
 //         res.json(error)
 //     }
 // });
-
-
-router.post('/testest1', async (req, res) => {
-
-    const queryText = 
-        "C_DateModified>" + "'" + utils.yesterday_getDateTime().start + " 10:00:00'" + 
-        "C_DateModified<" + "'" + utils.yesterday_getDateTime().end + " 11:00:59'" +
-        "C_DateCreated!=" + "'" + utils.yesterday_getDateTime().start +"'";	
-
-    const queryText1 = 
-        "C_DateCreated>" + "'" + utils.yesterday_getDateTime().start + " 00:00:00'" + 
-        "C_DateCreated<" + "'" + utils.yesterday_getDateTime().start + " 23:59:59'"
-        
-
-    let q = {
-        search : queryText,
-        depth : ""
-    };
-    // q['search'] = email; 
-    // q['depth'] = depth ? depth : ""
-    console.log(q);//{ search: '1eee@goldenplanet.co.kr', depth: 'complete' }
-    //lge_eloqua.contacts.getAll(q).then((result: any) => {
-    await lgeSdk_eloqua.data.contacts.get(q).then((result:any) => {
-        res.json(result.data);
-    }).catch((err:any) => {
-        console.error(err.message);
-        res.json("연락처조회에 실패하였습니다.");
-    });
-});
-
-
 
 export default router;

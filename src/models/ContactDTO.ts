@@ -1,9 +1,25 @@
 import * as utils from "@src/util/etc_function";
+import {convertCountry} from "@src/api/interface/interfaceApi"
 
 export interface IReqEloqua {
     search: string;
     depth: string;
   }
+
+export interface IUpdateContact {
+  company: string | undefined;
+  uID: string | undefined;
+}
+
+export class updateContact {
+  uID: string;
+  company: string;
+
+  constructor(uID: string, company: string) {
+    this.uID = uID;
+    this.company = company;
+  }
+}
 
 
 // export default {
@@ -48,53 +64,38 @@ class FieldValue {
 
 export class Contact {
   type: string;
-  currentStatus: string;
   id: string;
   createdAt: string;
-  depth: string;
   name: string;
   updatedAt: string;
   accountName: string;
-  address1: string;
-  address2: string;
   businessPhone: string;
   city: string;
   country: string;
   emailAddress: string;
-  emailFormatPreference: string;
   fieldValues: FieldValue[];
   firstName: string;
-  isBounceback: string;
-  isSubscribed: string;
   lastName: string;
   mobilePhone: string;
   postalCode: string;
-  subscriptionDate: string;
+
 
   constructor(data: any) {
       this.type = data.type;
-      this.currentStatus = data.currentStatus;
       this.id = data.id;
       this.createdAt = data.createdAt;
-      this.depth = data.depth;
       this.name = data.name;
       this.updatedAt = data.updatedAt;
       this.accountName = data.accountName;
-      this.address1 = data.address1;
-      this.address2 = data.address2;
       this.businessPhone = data.businessPhone;
       this.city = data.city;
       this.country = data.country;
       this.emailAddress = data.emailAddress;
-      this.emailFormatPreference = data.emailFormatPreference;
       this.fieldValues = data.fieldValues.map((fv: any) => new FieldValue(fv.type, fv.id, fv.value));
       this.firstName = data.firstName;
-      this.isBounceback = data.isBounceback;
-      this.isSubscribed = data.isSubscribed;
       this.lastName = data.lastName;
       this.mobilePhone = data.mobilePhone;
       this.postalCode = data.postalCode;
-      this.subscriptionDate = data.subscriptionDate;
   }
 }
 
@@ -107,47 +108,36 @@ export class ContactForm {
   type: string;
   fieldValues: FormFieldValue[];
 
-  constructor(contact: Contact) {
+  constructor(contact: any, updateContact:IUpdateContact) {
       this.type = "FormData";
       this.fieldValues = [
-          //Last Name
-          new FormFieldValue("FieldValue", "159226", "Account UID", contact.lastName),
-          //First Name 
-          new FormFieldValue("FieldValue", "159226", "Account UID", contact.firstName),
-          //Full Name
-          new FormFieldValue("FieldValue", "159226", "Account UID", this.getFieldValueById(contact, "100172")),
-          //Business Phone
-          new FormFieldValue("FieldValue", "159226", "Account UID", contact.businessPhone),
-          //Mobile Phone
-          new FormFieldValue("FieldValue", "159226", "Account UID", contact.mobilePhone),
-          //Email Address
-          new FormFieldValue("FieldValue", "159226", "Account UID", contact.emailAddress),
-          //BU별 Seniority
-          new FormFieldValue("FieldValue", "159226", "Account UID", contact.lastName),
-          //Department
-          new FormFieldValue("FieldValue", "159226", "Account UID", this.getFieldValueById(contact, "100238")),
-          //Date Created
-          new FormFieldValue("FieldValue", "159226", "Account UID", this.formatUnixTimestamp(contact.createdAt)),
-          //Date Modified
-          new FormFieldValue("FieldValue", "159226", "Account UID", this.formatUnixTimestamp(contact.updatedAt)),
-          //Marketing Event
-          new FormFieldValue("FieldValue", "159226", "Account UID", this.getFieldValueById(contact, "100203")),
-          //Company Name
-          new FormFieldValue("FieldValue", "159226", "Account UID", contact.accountName),
-          //City
-          new FormFieldValue("FieldValue", "159226", "Account UID", contact.city),
-
-          new FormFieldValue("FieldValue", "159226", "Account UID", contact.lastName)
-          // new FormFieldValue("FieldValue", "159226", "Account UID", contact.lastName)
-          // new FormFieldValue("FieldValue", "159226", "Account UID", contact.lastName)
-          // new FormFieldValue("FieldValue", "159226", "Account UID", contact.lastName)
-          // new FormFieldValue("FieldValue", "159226", "Account UID", contact.lastName)
+          new FormFieldValue("FieldValue", "163925", "Last Name", contact.lastName),
+          new FormFieldValue("FieldValue", "163926", "First Name", contact.firstName),
+          new FormFieldValue("FieldValue", "163994", "Business Phone", contact.businessPhone),
+          new FormFieldValue("FieldValue", "163995", "Mobile Phone", contact.mobilePhone),
+          new FormFieldValue("FieldValue", "158358", "Email Address", contact.emailAddress),
+          new FormFieldValue("FieldValue", "163933", "Company Name", updateContact.company ?? contact.accountName),
+          new FormFieldValue("FieldValue", "163934", "City", contact.city),
+          new FormFieldValue("FieldValue", "163935", "CountryCode", convertCountry(contact.country)),
+          new FormFieldValue("FieldValue", "163927", "First Name and Last Name", this.getFieldValueById(contact, "100172")),
+          new FormFieldValue("FieldValue", "163928", "BU별 Seniority", this.getFieldValueBusinessType(contact, 'Seniority')),
+          new FormFieldValue("FieldValue", "163929", "Department", this.getFieldValueById(contact, "100238")),
+          new FormFieldValue("FieldValue", "163930", "Date Created", this.formatUnixTimestamp(contact.createdAt)),
+          new FormFieldValue("FieldValue", "163931", "Date Modified", this.formatUnixTimestamp(contact.updatedAt)),
+          new FormFieldValue("FieldValue", "163932", "Marketing Event", this.getFieldValueById(contact, "100203")),
+          new FormFieldValue("FieldValue", "163936", "BU별 Job Function", this.getFieldValueBusinessType(contact, 'JobFunction')),
+          new FormFieldValue("FieldValue", "163937", "Job Title", this.getFieldValueById(contact, "100292")),
+          new FormFieldValue("FieldValue", "163938", "DirectMarketing_EM_TXT_SNS", this.getFieldValueById(contact, "100211")),
+          new FormFieldValue("FieldValue", "163940", "TransferOutsideCountry", this.getFieldValueById(contact, "100210")),
+          new FormFieldValue("FieldValue", "163939", "Privacy Policy_Agreed", this.getFieldValueById(contact, "100213")),
+          new FormFieldValue("FieldValue", "158363", "Account UID", updateContact.uID),
+          new FormFieldValue("FieldValue", "163941", "Zip or Postal Code", this.getFieldValueById(contact, "100011")),
       ];
   }
   
-  private getFieldValueById(contact: Contact, id: string): string | undefined {
+  private getFieldValueById(contact: Contact, id: string): string {
     const fieldValue = contact.fieldValues.find((fv) => fv.id === id);
-    return fieldValue ? fieldValue.value : undefined;
+    return fieldValue ? fieldValue.value : "";
   }
 
   private formatUnixTimestamp(unixTimestamp:any): string {
@@ -158,53 +148,64 @@ export class ContactForm {
 
 
   //Business Unit
-  private getFieldValueByType( contact:Contact, businessUnit:string, field:string ): string | undefined {
-    const BU_FieldValues:any = {
-      "AS": {
-        //AS_Authority1(Seniority)
-        Seniority: "100219",
-        //AS_Authority2(Job Function)
-        JobFunction: "100323",
-      },
-      "IT": {
-        //IT_Authority1(Seniority)
-        Seniority: "100269",
-        //IT_Authority2(Job Function)
-        JobFunction: "100214",
-      },
-      "ID": {
-        //ID_Authority1(Seniority)
-        Seniority: "100262",
-        //ID_Authority2(Job Function)
-        JobFunction: "100322",
-      },
-      "CM": {
-        //CM_Authority1(Seniority)
-        Seniority: "100288",
-        //CM_Authority2(Job Function)
-        JobFunction: "100325",
-      },
-      "CLS": {
-        Seniority: "100335",
-        //CLS_Authority2(Job Function)
-        JobFunction: "100435",
-      },
-      "Solution": {
-        Seniority: "100335",
-        JobFunction: "100435",
-      },
-      "Kitchen Solution": {
-        Seniority: "100335",
-        JobFunction: "100435",
+  private getFieldValueBusinessType( contact:Contact, field:string ): string | undefined {
+    let businessUnit:string = this.getFieldValueById(contact, '100229');
+    if(businessUnit != ''){
+      const BU_FieldValues:any = {
+        "AS": {
+          //AS_Authority1(Seniority)
+          Seniority: "100219",
+          //AS_Authority2(Job Function)
+          JobFunction: "100323",
+        },
+        "IT": {
+          //IT_Authority1(Seniority)
+          Seniority: "100269",
+          //IT_Authority2(Job Function)
+          JobFunction: "100214",
+        },
+        "ID": {
+          //ID_Authority1(Seniority)
+          Seniority: "100262",
+          //ID_Authority2(Job Function)
+          JobFunction: "100322",
+        },
+        "CM": {
+          //CM_Authority1(Seniority)
+          Seniority: "100288",
+          //CM_Authority2(Job Function)
+          JobFunction: "100325",
+        },
+        "CLS": {
+          //CLS_Authority1(Seniority)
+          Seniority: "100289",
+          //CLS_Authority2(Job Function)
+          JobFunction: "100327",
+        },
+        "Solution": {
+          //Solution_Authority1(Seniority)
+          Seniority: "100228",
+          //Solution_Authority2(Job Function)
+          JobFunction: "100321",
+        },
+        "Kitchen Solution": {
+          //Kitchen Solution_Authority1(Seniority)
+          Seniority: "100407",
+          //Kitchen Solution_Authority2(Job Function)
+          JobFunction: "100408",
+        }
+      };
+      //businessUnit과 field에 대한 매핑 가져오기
+      const BU = BU_FieldValues[businessUnit];
+      if (BU && BU[field]) {
+        return this.getFieldValueById(contact, BU[field]);
+      } else {
+        return "";
       }
-    };
-    //businessUnit과 field에 대한 매핑 가져오기
-    const BU = BU_FieldValues[businessUnit];
-    if (BU && BU[field]) {
-      return this.getFieldValueById(contact, BU[field]);
-    } else {
+    }else{
       return "";
     }
+
     // switch (businessUnit) {
     //   case "AS":
     //     switch (field){

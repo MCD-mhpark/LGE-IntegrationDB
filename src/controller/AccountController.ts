@@ -41,6 +41,7 @@ const DB_to_Account = async(req: Request, res: Response): Promise<void> =>{
         );
         
         console.time('Account DB INSERT Time');
+        
         //2. totalPage 수 만큼 for문 처리, 이후 data insert는 Service로직 태움
         for( let i = 1; i <= accountData.totalPage; i++ ){
             AccountReq.nowPage = i;

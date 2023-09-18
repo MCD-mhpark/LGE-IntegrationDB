@@ -17,10 +17,10 @@ const integrationAccount = async (IntgrationDB_AccountData: IAccountRes): Promis
         for (const account of AccountArr){
 
             //Form 형식에 맞게 Data Convert
-            let converFormData = new AccountForm(account);
+            let convertFormData = new AccountForm(account);
             
             //Eloqua Form Insert 비동기 처리 
-            const Iresult = lge_eloqua.contacts.form_Create(formId, converFormData);
+            const Iresult = lge_eloqua.contacts.form_Create(formId, convertFormData);
             resultarr.push(Iresult);
 
         }
