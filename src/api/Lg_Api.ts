@@ -1,8 +1,8 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
 import {ILgToken, ICompanyData, IAccountReq, IAccountRes,IreqAccountRegister, convertCountry} from "@src/api/interface/interfaceApi"
-import logger from 'jet-logger';
+import logger from '../public/modules/jet-logger/lib/index';
 
-const LgToken: ILgToken = {
+const LgToken_DEV: ILgToken = {
     grant_type: 'password',
     username: 'interface@lgemat.com.dev',
     password: 'test123456',
@@ -10,15 +10,23 @@ const LgToken: ILgToken = {
     client_secret: '388241CFD5BF07137A8C2AD86B06C3287B6832CEC19FE4A81115885D01F7860A'
 }
 
+const LgToken_STG: ILgToken = {
+    grant_type: 'password',
+    username: 'interface@lgemat.com.sandbox',
+    password: 'test123456',
+    client_id: '3MVG9z6NAroNkeMk0uWmFEs5g4eVxCVQ9lpWjUrV5NDrBLukKjZefDLJqUJJPzBuNvM22lWN22mSb.3YCTxhF',
+    client_secret: 'F0FA162933CC5F4C23944CFBDF49F7321467FAE7B7301CD6B8DEFB664A596891'
+}
+
 async function GetToken():Promise<any> {
 
         return await axios({
             method: "POST", 
-            url: "https://lgcorp--dev.sandbox.my.salesforce.com/services/oauth2/token", // 개발 
-            //url: "https://lgcorp--sandbox.sandbox.my.salesforce.com/services/oauth2/token", // 품질
+            //url: "https://lgcorp--dev.sandbox.my.salesforce.com/services/oauth2/token", // 개발 
+            url: "https://lgcorp--sandbox.sandbox.my.salesforce.com/services/oauth2/token", // 품질
             //url: "https://lgcorp.my.salesforce.com/services/oauth2/token", //운영
             headers: {'content-type': 'application/x-www-form-urlencoded'},
-            data: LgToken, 
+            data: LgToken_STG, 
             validateStatus: function (status) {
                 return status >= 200 && status <= 400; 
               }
@@ -104,8 +112,8 @@ export const AccountProvide = async (data: IAccountReq):Promise<any> => {
 
     return await axios({
         method: "POST", 
-        url: "https://lgcorp--dev.sandbox.my.salesforce.com/services/apexrest/CD/AccountProvide/resultset", // 개발 
-        //url: "https://lgcorp--sandbox.sandbox.my.salesforce.com/services/apexrest/CD/AccountProvide/resultset", // 품질
+        //url: "https://lgcorp--dev.sandbox.my.salesforce.com/services/apexrest/CD/AccountProvide/resultset", // 개발 
+        url: "https://lgcorp--sandbox.sandbox.my.salesforce.com/services/apexrest/CD/AccountProvide/resultset", // 품질
         //url: "https://lgcorp.my.salesforce.com/services/apexrest/CD/AccountProvide/resultset", //운영
         headers: {
             Authorization: `Bearer ${TOKEN}`

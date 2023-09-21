@@ -1,10 +1,10 @@
 import './pre-start'; // Must be the first import
-import logger from 'jet-logger';
+import logger from './public/modules/jet-logger/lib/index';
 import server from './server';
 import EnvVars from '@src/constants/EnvVars';
 
 // **** Run **** //
-console.log(process.env.JET_LOGGER_FILEPATH);
+//console.log(process.env.JET_LOGGER_FILEPATH);
 const SERVER_START_MSG = (
 `
 #############################################

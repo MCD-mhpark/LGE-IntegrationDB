@@ -12,6 +12,8 @@ RUN sudo npm install --global pm2
 RUN sudo npm install
 RUN npm run build
 
-EXPOSE 4000
+VOLUME [ "/home/opc/LG_IntegrationDB/", "/home/LG__IntegrationDB/" ]
+
+EXPOSE 9000
 
 CMD ["sh", "-c", "pm2 list && pm2-runtime start ecosystem.config.js"]

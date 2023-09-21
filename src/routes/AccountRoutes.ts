@@ -1,18 +1,29 @@
 import express, {Request, Response, NextFunction} from 'express';
+import * as schedule from 'node-schedule';
 import AccountController from '@src/controller/AccountController';
 import * as utils from "@src/util/etc_function";
-import logger from 'jet-logger';
+import logger from '../public/modules/jet-logger/lib/index';
 const router = express.Router();
 
-function logPath (req: Request, res: Response, next:NextFunction) {
-    logger.settings.filepath = `./LGE_logs/account/${utils.getToday()}_jet-logger.log`
-    next();
-}
+// async function logPath (next:NextFunction) {
+//     logger.settings.filepath = `./LGE_logs/account/${utils.getToday()}_jet-logger.log`
+//     next();
+// }
 
-router.get('/test', logPath , AccountController.test);
+//1시간 마다 Account 정보 magration
+schedule.scheduleJob('0 * * * *', async () => {
+    try {
+        logger.settings.filepath = `./LGE_logs/account/${utils.getToday()}_jet-logger.log`
 
-router.post('/update', logPath ,AccountController.DB_to_Account);
+        await AccountController.DB_to_Account(); 
 
+    } catch (error) {
+        logger.err('AccountController.DB_to_Account schedule 중 오류:', error);
+    }
+});
 
+//router.post('/update', logPath ,AccountController.DB_to_Account);
+
+//router.get('/test', logPath , AccountController.test);
 
 export default router;

@@ -4,7 +4,7 @@ import path from 'path';
 import cors from "cors";
 import helmet from 'helmet';
 import express, { Request, Response, NextFunction } from 'express';
-import logger from 'jet-logger';
+import logger from './public/modules/jet-logger/lib/index';
 import 'express-async-errors';
 
 // import BaseRouter from '@src/routes/api';
@@ -23,6 +23,7 @@ import accountRoutes from '@src/routes/AccountRoutes';
 
 const app = express();
 
+console.log("test1");
 
 // **** Setup **** //
 

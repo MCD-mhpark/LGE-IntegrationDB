@@ -12,11 +12,10 @@ module.exports = {
     env: {
     NODE_ENV: 'production',
     },
-    instances: 2,
+    instances: 1,
     exec_mode: "cluster",
-
    //tsc
-   post_update: ['npm run build'],
+   //post_update: ['npm run build'],
    //log_date_format: "YYYY-MM-DD HH:mm:ss",
    output: "./LGE_logs/pm2/lg_integrationDB.log",
    error: "./LGE_logs/pm2/lg_integrationDB-error.log"

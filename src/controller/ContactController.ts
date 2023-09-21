@@ -3,18 +3,11 @@ import { Contact, IReqEloqua, ContactForm, IUpdateContact } from "@src/models/Co
 import ContactService from "@src/services/ContactService"
 import {convertCountry} from "@src/api/interface/interfaceApi"
 import * as utils from "@src/util/etc_function";
-
-//const clog = require('jet-customlog');
-import clog from '@src/public/modules/jet-logger';
-
-import logger from 'jet-logger';
+import logger from '../public/modules/jet-logger/lib/index';
 
 const test = async(req: Request, res: Response): Promise<any> =>{
-    
-    clog.info('asdf')
-    //logger.info('contact 성공성공성공성공성공');
+    logger.info('contact 성공성공성공성공성공');
     console.log("12contact 성공성공성공성공성공");
-
     return res.json({
         message: "통신 성공"
     })
@@ -81,7 +74,7 @@ const UID_Process = async(req: Request, res: Response): Promise<void> => {
                 logger.info(RESULT);
             }
 
-            console.timeEnd;("Contact IntegrationDB")
+            console.timeEnd("Contact IntegrationDB");
         }
         
         res.json('success');

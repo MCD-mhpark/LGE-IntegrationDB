@@ -1,4 +1,5 @@
-import EloquaApi from 'eloqua';
+//import EloquaApi from 'eloqua';
+import EloquaApi from '../public/modules/eloqua/dist/client';
 import EloquaSDkApi from '../public/modules/eloqua-sdk/dist/Eloqua';
 
 export const lge_eloqua = new EloquaApi({
@@ -6,7 +7,8 @@ export const lge_eloqua = new EloquaApi({
     userName: 'Lg_api.B2b_global',
     password: 'QWert1234!@'
   });
-
+ 
+  
 const eloqua_config = {
     siteName: 'LGElectronics',
     userName: 'Lg_api.B2b_global',

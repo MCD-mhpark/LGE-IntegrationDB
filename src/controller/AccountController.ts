@@ -3,31 +3,17 @@ import express, { Request, Response } from "express";
 import AccountService from "@src/services/AccountService"
 import * as LgApi from "@src/api/Lg_Api"
 import { IAccountReq, IAccountRes} from "@src/api/interface/interfaceApi"
-import logger from 'jet-logger';
-//import {testData105, testData1050} from "@src/controller/testData"
+import logger from '../public/modules/jet-logger/lib/index';
 
-
-const test = async(req: Request, res: Response): Promise<any> =>{
-
-    logger.info("account 성공성공성공성공성공");
-
-    console.log("성공성공성공성공성공");
-    
-    return res.status(200).json({
-        message: "통신 성공"
-    })
-}
-
-
-const DB_to_Account = async(req: Request, res: Response): Promise<void> =>{
+const DB_to_Account = async(): Promise<void> =>{
 
     try {
         logger.info('### 통합 DB Account Data INSERT START! ###')
 
         const AccountReq: IAccountReq = {
             LGCompanyDivision: "EKHQ",
-            SourceSystemDivision: "MAT",
-            perCount: 10,
+            SourceSystemDivision: "Eloqua",
+            perCount: 1000,
             nowPage: 1,
             beginDateTime: "2023-08-01 00:00",
             endDateTime: "2023-08-15 24:00",
@@ -55,7 +41,8 @@ const DB_to_Account = async(req: Request, res: Response): Promise<void> =>{
 
         console.timeEnd('Account DB INSERT Time');
         logger.info("### Account 데이터 생성 및 업데이트 SUCCESS ###"); 
-        res.json({ success: 'success'})
+
+        //res.json({ success: 'success'})
    
     }catch(error) {
         logger.err({
@@ -68,8 +55,14 @@ const DB_to_Account = async(req: Request, res: Response): Promise<void> =>{
     }
 }
 
+// const test = async(req: Request, res: Response): Promise<any> =>{
+//     logger.info("account 성공성공성공성공성공");
+//     return res.status(200).json({
+//         message: "통신 성공"
+//     })
+// }
 
 export default {
-    test,
     DB_to_Account
+    //test,
 }

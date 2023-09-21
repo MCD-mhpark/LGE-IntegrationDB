@@ -3,7 +3,7 @@ import { Contact, IReqEloqua, ContactForm, IUpdateContact } from "@src/models/Co
 import {AccountSingleResult, AccountRegister} from "@src/api/Lg_Api"
 import {IreqAccountRegister, ICompanyData, IresAccountRegister} from "@src/api/interface/interfaceApi"
 import * as utils from "@src/util/etc_function";
-import logger from 'jet-logger';
+import logger from '../public/modules/jet-logger/lib/index';
 
 //Contact 조건에 맞게 Search List
 const Get_ContactList = async(code:string, pageindex:number): Promise<any> => {

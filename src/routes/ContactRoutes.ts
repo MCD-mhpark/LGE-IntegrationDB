@@ -4,7 +4,7 @@ import ContactController from '../controller/ContactController'
 import {lge_eloqua , lgeSdk_eloqua} from '@src/routes/Auth';
 import * as utils from "@src/util/etc_function";
 import {api_searchCompany} from "@src/api/singlex_Api";
-import logger from 'jet-logger';
+import logger from '../public/modules/jet-logger/lib/index';
 import {ILgToken, ICompanyData, IAccountReq, IAccountRes ,convertCountry} from "@src/api/interface/interfaceApi"
 
 const whitelist = ['https://b2bmkt.lge.com', 'http://127.0.0.1:5500'] ;
