@@ -12,7 +12,7 @@ RUN sudo npm install --global pm2
 RUN sudo npm install
 RUN npm run build
 
-VOLUME [ "/home/opc/LG_IntegrationDB/", "/home/LG__IntegrationDB/" ]
+VOLUME [ "/home/opc/LG_IntegrationDB/LGE_logs", "/home/LG__IntegrationDB/LGE_logs" ]
 
 EXPOSE 9000
 
