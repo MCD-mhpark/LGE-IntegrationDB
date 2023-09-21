@@ -39,9 +39,21 @@ function logPath (req: Request, res: Response, next:NextFunction) {
 }
 
 
-router.post('/test' , cors(corsOptions) ,ContactController.test);
+router.post('/test' ,ContactController.test);
+//cors(corsOptions)
 
+
+/*
+* Contact 연동
+*/
+
+// Contact UID 발급 프로세스 
 router.post('/modified', logPath, ContactController.UID_Process);
+
+// Contact Data => 통합 DB 전송 
+router.post('/send', logPath, ContactController.Send_Contact);
+
+
 
 
 
@@ -66,28 +78,5 @@ router.post('/gpSinglexAPI', cors(corsOptions) , async (req: Request, res: Respo
 });
 
 
-//////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////
-router.get('/tokentest', async (req:Request, res:Response):Promise<void> => {
-  
-})
-
-// router.post('/testest', async (req:Request, res:Response):Promise<void> => {
-//     try{
-//         let data: IAccountReq = {
-//             LGCompanyDivision:"EKHQ",
-//             SourceSystemDivision:"MAT", 
-//             perCount: 20,
-//             nowPage: 3, 
-//             beginDateTime:"2023-08-01 16:00",
-//             endDateTime: "2023-08-24 16:00"
-//         };
-//         let aa = LgApi.AccountProvide(data);
-//         res.json(aa);
-//     }catch(error){
-//         res.json(error)
-//     }
-// });
 
 export default router;

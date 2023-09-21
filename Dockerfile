@@ -1,5 +1,6 @@
 FROM node:18
 
+ENV LC_ALL=C.UTF-8
 ENV TZ=Asia/Seoul
 
 ADD . /home/LG_IntegrationDB/
@@ -14,6 +15,3 @@ RUN npm run build
 EXPOSE 4000
 
 CMD ["sh", "-c", "pm2 list && pm2-runtime start ecosystem.config.js"]
-#ENTRYPOINT ["pm2-runtime", "start", "ecosystem.config.js"]
-
-# CMD ["npm", "run", "start"]

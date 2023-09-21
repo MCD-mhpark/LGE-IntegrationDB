@@ -3,7 +3,8 @@ import {convertCountry} from "@src/api/interface/interfaceApi"
 
 export interface IReqEloqua {
     search: string;
-    depth: string;
+    depth?: string;
+    page?: number;
   }
 
 export interface IUpdateContact {

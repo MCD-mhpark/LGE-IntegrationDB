@@ -157,6 +157,8 @@ function _printLog(content, printFull, level, settings) {
         console.log(colorFn(content));
     }
     else if (mode === LoggerModes.File) {
+        var colorFn = colors_1.default[level.Color];
+        console.log(colorFn(content));
         _writeToFile(content + '\n', filepath)
             .catch(function (err) { return console.log(err); });
     }

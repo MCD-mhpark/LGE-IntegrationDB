@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
-import {ILgToken, ICompanyData, IAccountReq, IAccountRes,IAccountRegister, convertCountry} from "@src/api/interface/interfaceApi"
+import {ILgToken, ICompanyData, IAccountReq, IAccountRes,IreqAccountRegister, convertCountry} from "@src/api/interface/interfaceApi"
 import logger from 'jet-logger';
 
 const LgToken: ILgToken = {
@@ -51,18 +51,19 @@ async function GetToken():Promise<any> {
 
 export const AccountSingleResult = async (data: ICompanyData):Promise<any> => {    
     
-    //1. 국가 코드 변환token 값 
-    console.log(data.countryCode);
-    if(convertCountry(data.countryCode) === 'undefined error'){
-        // 이렇게 반환되면 AccountSingleResult 사용하는 곳에서 이메일 로그 남겨야 함
-        return 'undefined Country'
-    }else{
-    //2. token 값 생성
+    //0. 국가 코드 변환token 값 
+    // console.log(data.countryCode);
+    // if(convertCountry(data.countryCode) === 'undefined error'){
+    //     // 이렇게 반환되면 AccountSingleResult 사용하는 곳에서 이메일 로그 남겨야 함
+    //     return 'undefined Country'
+    // }
+
+    //1. token 값 생성
     const TOKEN = await GetToken();
 
-    //3. Api 통신
+    //2. Api 통신
     const Companydata: ICompanyData = {
-        countryCode : convertCountry(data.countryCode), 
+        countryCode : data.countryCode, 
         bizRegNo : data.bizRegNo, 
         dunsNo : data.dunsNo, 
         taxId : data.taxId
@@ -74,15 +75,15 @@ export const AccountSingleResult = async (data: ICompanyData):Promise<any> => {
             //url: "https://lgcorp.my.salesforce.com/services/apexrest/CD/AccountSingle/resultset" // 운영
             headers: {
                 Authorization: `Bearer ${TOKEN}`
-              },
+            },
             data: Companydata, 
             validateStatus: function (status) {
                 return status >= 200 && status <= 400; 
-              }
+            }
         })
         .then(function (response):AxiosResponse<any> {
             //console.log(JSON.parse(response.data.result));
-            let data = JSON.parse(response.data.result)
+            let data = JSON.parse(response.data.result);
                 return data;
                 // UID 조회가 안될경우
                 // {
@@ -92,7 +93,6 @@ export const AccountSingleResult = async (data: ICompanyData):Promise<any> => {
         .catch(function (error):AxiosError<any> {
             throw error;
         })
-    }
 
 }    
 
@@ -132,7 +132,7 @@ export const AccountProvide = async (data: IAccountReq):Promise<any> => {
 }    
 
 //Account UID 발급 요청 API
-export const AccountRegister = async (data:IAccountRegister):Promise<any> => {
+export const AccountRegister = async (data:IreqAccountRegister):Promise<any> => {
 
     //Access Token Value
     const TOKEN = await GetToken();
@@ -141,7 +141,7 @@ export const AccountRegister = async (data:IAccountRegister):Promise<any> => {
         method: "POST", 
         url: "https://lgcorp--dev.sandbox.my.salesforce.com/services/apexrest/CD/Account/Register", // 개발 
         //url: "https://lgcorp--sandbox.sandbox.my.salesforce.com/services/apexrest/CD/Account/Register", // 품질
-        //url: "https://lgcorp--dev.sandbox.my.salesforce.com/services/apexrest/CD/Account/Register", //운영
+        //url: "https://lgcorp.my.salesforce.com/services/apexrest/CD/Account/Register", //운영
         headers: {
             Authorization: `Bearer ${TOKEN}`
           },
@@ -151,12 +151,55 @@ export const AccountRegister = async (data:IAccountRegister):Promise<any> => {
           }
     })
     .then(function (response):AxiosResponse<any> {
-        console.log(response.data);
+        //console.log(response.data);
+        //let data = JSON.parse(response.data.result);
         return response.data;
     })
     .catch (function (error):AxiosError<any> {                        
         console.log({
-            "error" : "UID 발급 요청 API 오류가 발생하였습니다.",
+            "error" : "UID 발급 API 오류가 발생하였습니다.",
+            "response_msg" : [error.response ? JSON.stringify(error.response.data) : error]
+        });
+        throw error
+    })
+
+}    
+
+//Account UID 발급 결과 전송 API
+export const AccountRegisterResult = async (data:any):Promise<any> => {
+
+    data = {
+        "LGCompanyDivision":"EKHQ",
+        "SourceSystemDivision":"MAT",
+        "Type":"D",
+        "FromDate":"2023-09-01",
+        "ToDate":"2023-09-15",
+        "AccountMappingFlag":"N"
+    }
+    //Access Token Value
+    const TOKEN = await GetToken();
+
+    return await axios({
+        method: "POST", 
+        url: "https://lgcorp--dev.sandbox.my.salesforce.com/services/apexrest/ARI/result/resultset", // 개발 
+        //url: "https://lgcorp--sandbox.sandbox.my.salesforce.com/services/apexrest/ARI/result/resultset", // 품질
+        //url: "https://lgcorp.my.salesforce.com/services/apexrest/ARI/result/resultset", //운영
+        headers: {
+            Authorization: `Bearer ${TOKEN}`
+          },
+        data, 
+        validateStatus: function (status) {
+            return status >= 200 && status <= 400; 
+          }
+    })
+    .then(function (response):AxiosResponse<any> {
+        //console.log(response.data);
+        let data = JSON.parse(response.data.result);
+        return data;
+    })
+    .catch (function (error):AxiosError<any> {                        
+        console.log({
+            "error" : "UID 발급 요청 결과 전송 API 오류가 발생하였습니다.",
             "response_msg" : [error.response ? JSON.stringify(error.response.data) : error]
         });
         throw error

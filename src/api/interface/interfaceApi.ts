@@ -13,6 +13,25 @@ export interface ICompanyData {
     taxId? : string
 }
 
+
+export interface IresAccountRegister {
+    timestamp: string;
+    result: string;
+    path: string;
+    message: string;
+}
+
+export interface IreqAccountRegister {
+    Account: {
+      Country: string;
+      AccountName?: string;
+      LGCompanyDivision: string;
+      CompanyRegistrationNumber?: string;
+      TaxId?: string;
+      DunsNumber?: string;
+    }[];
+} 
+
 export function convertCountry(country: string): string {
     const countryMap: { [key: string]: string } = {
         "Afghanistan": "AF",
@@ -226,16 +245,3 @@ export interface IAccountRes {
     nowPage: number | null;
     message: string;
 }
-
-export interface IAccountRegister {
-    Account: IAccountRegisterData[];
-  }
-export interface IAccountRegisterData {
-    //SourceSystemKey1: string;
-    Country: string;
-    AccountName: string;
-    LGCompanyDivision: string;
-    CompanyRegistrationNumber? : string;
-    TaxId? : string
-    DunsNumber? : string
-  }
