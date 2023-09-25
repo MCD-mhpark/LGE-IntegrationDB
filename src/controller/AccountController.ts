@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
-
 import AccountService from "@src/services/AccountService"
 import * as LgApi from "@src/api/Lg_Api"
+import * as utils from "@src/util/etc_function"
 import { IAccountReq, IAccountRes} from "@src/api/interface/interfaceApi"
 import logger from '../public/modules/jet-logger/lib/index';
 
@@ -15,12 +15,12 @@ const DB_to_Account = async(): Promise<void> =>{
             SourceSystemDivision: "Eloqua",
             perCount: 1000,
             nowPage: 1,
-            beginDateTime: "2023-08-01 00:00",
-            endDateTime: "2023-08-15 24:00",
+            beginDateTime: utils.getTodayTime().beginDateTime,
+            endDateTime: utils.getTodayTime().endDateTime,
         };
         
         //1. Account 생성 및 변경 목록 조회 (데이터가 없으면 CATCH로 떨어짐), 최초 1회 통신으로 totalpage Value 값 가져옴
-        const accountData = await LgApi.AccountProvide(AccountReq);
+        const accountData = await LgApi.AccountProvideAPI(AccountReq);
 
         logger.info(`### Account 현재 시간 생성 및 변경 목록 Count ### 
         AccountController>> account totalPage: ${accountData.totalPage}, account totalCount: ${accountData.totalCount}`
@@ -32,11 +32,11 @@ const DB_to_Account = async(): Promise<void> =>{
         for( let i = 1; i <= accountData.totalPage; i++ ){
             AccountReq.nowPage = i;
             //console.log(AccountReq);
-            const IntgrationDB_AccountData = await LgApi.AccountProvide(AccountReq);
+            const IntgrationDB_AccountData = await LgApi.AccountProvideAPI(AccountReq);
 
-            logger.info(`### integrationAccount start NOWPAGE INDEX: ${AccountReq.nowPage} START! ###`); 
+            logger.info(`### integrationAccount NOWPAGE INDEX: ${AccountReq.nowPage} START! ###`); 
             await AccountService.integrationAccount(IntgrationDB_AccountData);
-            logger.info(`### integrationAccount start NOWPAGE INDEX: ${AccountReq.nowPage} END! ###`); 
+            logger.info(`### integrationAccount NOWPAGE INDEX: ${AccountReq.nowPage} END! ###`); 
         }
 
         console.timeEnd('Account DB INSERT Time');

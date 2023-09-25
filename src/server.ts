@@ -23,8 +23,6 @@ import accountRoutes from '@src/routes/AccountRoutes';
 
 const app = express();
 
-console.log("test1");
-
 // **** Setup **** //
 
 // Basic middleware

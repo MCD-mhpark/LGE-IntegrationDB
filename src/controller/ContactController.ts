@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import { Contact, IReqEloqua, ContactForm, IUpdateContact } from "@src/models/ContactDTO";
+import { Contact, IReqEloqua, ContactForm, IUpdateContact, SendContactData, CustomObjectData } from "@src/models/ContactDTO";
 import ContactService from "@src/services/ContactService"
 import {convertCountry} from "@src/api/interface/interfaceApi"
 import * as utils from "@src/util/etc_function";
@@ -44,19 +44,19 @@ const UID_Process = async(req: Request, res: Response): Promise<void> => {
                 const resdata = await ContactService.Get_ContactList(logic, page);
                 const contactData = resdata.elements;
                 
-                //2. UID 조회 (KR: 국가코드 + 사업자 등록번호, Global: 국가코드 + Tax ID)
+                //2. UID 존재 여부 확인 및 UID 발급 요청 (KR: 국가코드 + 사업자 등록번호, Global: 국가코드 + Tax ID)
                 for(const data of contactData){
 
                     const email = data.emailAddress;
-                    const companyName = data.hasOwnProperty('accountName') ? data.accountName : undefined ;
+                    const companyName = data.hasOwnProperty('accountName') ? data.accountName : undefined;
+                    const companyCode = utils.matchFieldValues(data, '100458'); //Company Country Code
                     const regNum = utils.matchFieldValues(data, '100398');
                     const taxId = utils.matchFieldValues(data, '100420');
                     //const duns_Number: string | undefined = utils.matchFieldValues(data, '100421');
                     
-                    logger.info(`### email: ${email}, CompanyName: ${companyName}, regNum: ${regNum}, taxId: ${taxId} ###`);
+                    logger.info(`email: ${email}, companyCode: ${companyCode}, CompanyName: ${companyName}, regNum: ${regNum}, taxId: ${taxId}`);
 
-                    //2-1. UID 존재 여부 확인 및 UID 발급 요청, return updateContact 값
-                    const updateResult:IUpdateContact = await ContactService.Check_UID(convertCountry(data.country), companyName, regNum, taxId);
+                    const updateResult:IUpdateContact = await ContactService.Check_UID(companyCode, companyName, regNum, taxId);
                     logger.info(`### CheckUID ${JSON.stringify(updateResult)} END ###`);
 
                     if(updateResult.uID != '' && updateResult.uID != undefined){
@@ -88,38 +88,74 @@ const UID_Process = async(req: Request, res: Response): Promise<void> => {
 
 }
 
-const Send_Contact = async (req:Request, res: Response):Promise<void> => {
 
-    let page: number = 1;
-    let nextSearch: boolean = true;
-    try {    
+/*
+* Custom Object Data => 통합 DB로 전송
+* 1 UID: pending(VID)인 것들 Account UID 발급 여부 체크
+* 2. 전날동안 쌓인 COD 전송 후, 전송여부 Y로 체크
+*/
+const Send_Contact = async (req:Request, res: Response):Promise<void> => {
+    
+    // const vidCheck = await ContactService.Get_COD("check",page);
+    // const vidCheckData = vidCheck.elements; 
+    // console.log('vidCheckData', vidCheckData.length);
+
+    // //UID 정상 발급 되지 않은 것들(ex. pending or null) Eloqua Account 체크.
+    // // if(vidCheckData.length != 0){
+    // //     for(data of vidCheckData){
+            
+    // //     }
+    // // }
+    try {
+        let page: number = 1;
+        let nextSearch: boolean = true;           
+
+        // 최종: 통합 DB로 COD 데이터 전송
+        logger.info(`##################### START SEND CONTACT DATA #####################`)
+        
         while(nextSearch){
+
             logger.info(page);
             
             //1. yesterDay Custom Object Data
-            const resdata = await ContactService.Get_COD(page);
-            
-            
-            
-            //2. covert API 
-
-            page++;
-            
+            const resdata = await ContactService.Get_COD("send",page);
+            //1-1. element == 0 이면 While 문 break;
             if( !resdata.elements || resdata.elements.length == 0 ) { 
-                logger.info(`408번 customobject send contact data : ${resdata.total} `)
+                logger.info(`408번 customobject send contact data : ${resdata.total}`)
                 nextSearch = false; 
                 break; 
             };
+            
+            
+            //2. 형식 변환 후 Data 전송
+            const customOjbectData:CustomObjectData[] = resdata.elements;
+            let result = await ContactService.ContactRegister(customOjbectData);
+            console.log("result", result);
+            
+            // for(const data of customOjbectData){
+            //     let convertdata = new SendContactData(data);
+            //     sendData.Contact.push(convertdata);
+            //     console.log(sendData);
+            // }
 
-            res.json(resdata);
+
+
+            page++;
         }
-
+        
+        res.json('success');
 
     }catch(error){
-
+        logger.err('### Send_Contact Controller Error ###');
+        logger.err('error', error);
+        res.json(error);
     }
     
 }
+
+/*
+* COD 30일 지난 데이터 삭제 로직
+*/
 
 
 export default {

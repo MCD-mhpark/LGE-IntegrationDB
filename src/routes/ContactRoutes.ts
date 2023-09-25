@@ -37,7 +37,10 @@ function logPath (req: Request, res: Response, next:NextFunction) {
     logger.settings.filepath = `./LGE_logs/contact/${utils.getToday()}_jet-logger.log`;
     next();
 }
-
+function sendlogPath (req: Request, res: Response, next:NextFunction) {
+    logger.settings.filepath = `./LGE_logs/contact/send/${utils.getToday()}_jet-logger.log`;
+    next();
+}
 
 router.post('/test' ,ContactController.test);
 //cors(corsOptions)
@@ -46,12 +49,11 @@ router.post('/test' ,ContactController.test);
 /*
 * Contact 연동
 */
-
-// Contact UID 발급 프로세스 
+// Contact UID 발급 프로세스 오후 3~4시
 router.post('/modified', logPath, ContactController.UID_Process);
 
-// Contact Data => 통합 DB 전송 
-router.post('/send', logPath, ContactController.Send_Contact);
+// Contact Data => 통합 DB 전송 오후 4시
+router.post('/send', sendlogPath, ContactController.Send_Contact);
 
 
 

@@ -109,9 +109,10 @@ export class ContactForm {
   type: string;
   fieldValues: FormFieldValue[];
 
-  constructor(contact: any, updateContact:IUpdateContact) {
+  constructor(contact: Contact, updateContact:IUpdateContact) {
       this.type = "FormData";
       this.fieldValues = [
+          new FormFieldValue("FieldValue", "164848", "Eloqua Contact ID", contact.id),
           new FormFieldValue("FieldValue", "163925", "Last Name", contact.lastName),
           new FormFieldValue("FieldValue", "163926", "First Name", contact.firstName),
           new FormFieldValue("FieldValue", "163994", "Business Phone", contact.businessPhone),
@@ -125,14 +126,18 @@ export class ContactForm {
           new FormFieldValue("FieldValue", "163929", "Department", this.getFieldValueById(contact, "100238")),
           new FormFieldValue("FieldValue", "163930", "Date Created", this.formatUnixTimestamp(contact.createdAt)),
           new FormFieldValue("FieldValue", "163931", "Date Modified", this.formatUnixTimestamp(contact.updatedAt)),
-          new FormFieldValue("FieldValue", "163932", "Marketing Event", this.getFieldValueById(contact, "100203")),
           new FormFieldValue("FieldValue", "163936", "BU별 Job Function", this.getFieldValueBusinessType(contact, 'JobFunction')),
           new FormFieldValue("FieldValue", "163937", "Job Title", this.getFieldValueById(contact, "100292")),
+          new FormFieldValue("FieldValue", "163932", "Marketing Event", this.getFieldValueById(contact, "100203")),
+          new FormFieldValue("FieldValue", "158363", "Account UID", updateContact.uID),
+          new FormFieldValue("FieldValue", "163941", "Zip or Postal Code", this.getFieldValueById(contact, "100011")),
+          
+          // 각 동의 항목별 KR, Global따라 매핑 되어야 하는 필드가 다름. //마지막 동의일자 폼필드 추가 필요
           new FormFieldValue("FieldValue", "163938", "DirectMarketing_EM_TXT_SNS", this.getFieldValueById(contact, "100211")),
           new FormFieldValue("FieldValue", "163940", "TransferOutsideCountry", this.getFieldValueById(contact, "100210")),
           new FormFieldValue("FieldValue", "163939", "Privacy Policy_Agreed", this.getFieldValueById(contact, "100213")),
-          new FormFieldValue("FieldValue", "158363", "Account UID", updateContact.uID),
-          new FormFieldValue("FieldValue", "163941", "Zip or Postal Code", this.getFieldValueById(contact, "100011")),
+
+          new FormFieldValue("FieldValue", "165117", "통합DB 전송 날짜", utils.getToday()),
       ];
   }
   
@@ -269,3 +274,151 @@ export class ContactForm {
     // }
   }
 }
+
+export interface CustomObjectData {
+  type: string;
+  id: string;
+  createdAt: string;
+  depth: string;
+  name: string;
+  updatedAt: string;
+  contactId: string;
+  customObjectRecordStatus: string;
+  fieldValues: {
+    type: string;
+    id: string;
+    value?: any;
+  }[];
+  isMapped: string;
+  uniqueCode: string;
+}
+
+export class SendContactData {
+  LGCompanyDivision: string;
+  SourceSystemDivision: string;
+  SourceSystemKey1: string;
+  Email: string;
+  LastName: string;
+  FirstName: string;
+  PhoneNumber: string;
+  MobilePhone: string;
+  Zip: string;
+  Title: string;
+  JobRole: string;
+  JobTitle: string;
+  Department: string;
+  AccountName: string;
+  AccountUID: string;
+  CountryCode: string;
+  Attribute1: string;
+  Attribute2: string;
+  Attribute3: string;
+  Attribute4: string;
+  Attribute5: string;
+  PrivacyPolicyAgreement: string;
+  PrivacyPolicyAgreementLastDate: string;
+  //ThirdPartyAgreement: string;
+  ThirdPartyAgreementLastDate: string;
+  TransferThirdCountriesAgreement: string;
+  TransferThirdCountriesAgreementLastDate: string;
+  MarketingAgreement: string;
+  MarketingAgreementLastDate : string;
+  SrcModifyDate: string;
+  SrcModifierId: string;
+  SrcModifierName: string;
+  SrcCreationDate: string;
+  SrcCreatorId: string;
+  SrcCreatorName: string;
+
+  constructor(customObjectData: CustomObjectData) {
+      this.LGCompanyDivision = "EKHQ";
+      this.SourceSystemDivision = "Eloqua";
+      this.SourceSystemKey1 = customObjectData.contactId;
+      this.Email = customObjectData.name;
+      this.LastName = this.getFieldValueById(customObjectData, "2943"); //Last Name
+      this.FirstName = this.getFieldValueById(customObjectData, "2942"); //First Name
+      this.PhoneNumber = this.getFieldValueById(customObjectData, "3149"); //Mobile Phone
+      this.MobilePhone = this.getFieldValueById(customObjectData, "3148"); //Business Phone
+      this.Zip = this.getFieldValueById(customObjectData, "3161"); //Zip or Postal Code
+      this.Title = this.getFieldValueById(customObjectData, "3150"); //BU별 Seniority
+      this.JobRole = this.getFieldValueById(customObjectData, "3156"); //BU별 Job Function
+      this.JobTitle = this.getFieldValueById(customObjectData, "3157"); //Job Title
+      this.Department = this.getFieldValueById(customObjectData, "3151"); //Department
+      this.AccountName = this.getFieldValueById(customObjectData, "2944"); //Company
+      this.AccountUID = this.getFieldValueById(customObjectData, "2937"); //Account UID
+      this.CountryCode = this.getFieldValueById(customObjectData, "2939"); //국가코드
+      this.Attribute1 = this.getFieldValueById(customObjectData, "3147"); //First Name and Last Name => 고객 Full Name
+      this.Attribute2 = this.getFieldValueById(customObjectData, "3155"); //City => 고객이 거주하는 도시
+      this.Attribute3 = this.getFieldValueById(customObjectData, "3154"); //Marketing Event=> 고객이 가장 최근에 진행한 Eloqua 캠페인 활동
+      this.Attribute4 = this.formatUnixTimestamp(this.getFieldValueById(customObjectData, "3167"));  //Date Created => Eloqua 데이터 생성일자
+      this.Attribute5 = this.formatUnixTimestamp(this.getFieldValueById(customObjectData, "3166")); //Date Modified => Eloqua 데이터 수정일자
+      //개인정보동의여부
+      this.PrivacyPolicyAgreement = this.getFieldValueById(customObjectData, "3159"); //Privacy Policy_Agreed
+      this.PrivacyPolicyAgreementLastDate = "";
+      //제3자이용동의여부
+      //this.ThirdPartyAgreement = this.getFieldValueById(customObjectData, "");
+      this.ThirdPartyAgreementLastDate = "";
+      //제3국이전동의여부
+      this.TransferThirdCountriesAgreement = this.getFieldValueById(customObjectData, "3160"); //TransferOutsideCountry
+      this.TransferThirdCountriesAgreementLastDate = "";
+      //마케팅동의여부
+      this.MarketingAgreement = this.getFieldValueById(customObjectData, "3158"); //DirectMarketing_EM_TXT_SNS
+      this.MarketingAgreementLastDate = "";
+
+      this.SrcModifyDate = utils.getTodayWithTime();
+      this.SrcModifierId = "ELOQUA"
+      this.SrcModifierName = "Eloqua to 통합DB 데이터 연동";
+      this.SrcCreationDate = utils.getTodayWithTime();
+      this.SrcCreatorId = "ELOQUA"
+      this.SrcCreatorName = "Eloqua to 통합DB 데이터 연동";
+  }
+
+  private getFieldValueById(customObjectData: CustomObjectData, id: string): string {
+    const fieldValue = customObjectData.fieldValues.find((fv) => fv.id === id);
+    return fieldValue ? fieldValue.value : "";
+  }
+
+  private formatUnixTimestamp(unixTimestamp:any): string {
+    if (!unixTimestamp) return "";
+    const date = new Date(parseInt(unixTimestamp) * 1000);
+    return date.toISOString().slice(0, 10); // yyyy-mm-dd 형식으로 변환
+  }
+
+}
+
+// interface SendContactData {
+//   LGCompanyDivision: string;
+//   SourceSystemDivision: string;
+//   SourceSystemKey1: string;
+//   Email: string;
+//   LastName: string;
+//   FirstName: string;
+//   PhoneNumber: string;
+//   MobilePhone: string;
+//   Zip: string;
+//   JobRole: string;
+//   JobTitle: string;
+//   Department: string;
+//   AccountName: string;
+//   AccountUID: string;
+//   CountryCode: string;
+//   Attribute1: string; //First Name and Last Name => 고객 Full Name
+//   Attribute2: string; //City => 고객이 거주하는 도시
+//   Attribute3: string; //Marketing Event=> 고객이 가장 최근에 진행한 Eloqua 캠페인 활동
+//   Attribute4: string; //Date Created => Eloqua 데이터 생성일자
+//   Attribute5: string; //Date Modified => Eloqua 데이터 수정일자
+//   PrivacyPolicyAgreement: string;
+//   ThirdPartyAgreement: string;
+//   TransferThirdCountriesAgreement: string;
+//   MarketingAgreement: string;
+//   SrcModifyDate: string;
+//   SrcModifierId: string;
+//   SrcModifierName: string;
+//   SrcCreationDate: string;
+//   SrcCreatorId: string;
+//   SrcCreatorName: string;
+// }
+
+// export interface SendContactDataWrapper {
+//   Contact: SendContactData[];
+// } 

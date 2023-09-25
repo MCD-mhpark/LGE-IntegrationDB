@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
-import {ILgToken, ICompanyData, IAccountReq, IAccountRes,IreqAccountRegister, convertCountry} from "@src/api/interface/interfaceApi"
+import {ILgToken, ICompanyData, IAccountReq, IAccountRes, IreqAccountRegister, convertCountry} from "@src/api/interface/interfaceApi"
 import logger from '../public/modules/jet-logger/lib/index';
 
 const LgToken_DEV: ILgToken = {
@@ -26,7 +26,7 @@ async function GetToken():Promise<any> {
             url: "https://lgcorp--sandbox.sandbox.my.salesforce.com/services/oauth2/token", // 품질
             //url: "https://lgcorp.my.salesforce.com/services/oauth2/token", //운영
             headers: {'content-type': 'application/x-www-form-urlencoded'},
-            data: LgToken_STG, 
+            data: LgToken_DEV, 
             validateStatus: function (status) {
                 return status >= 200 && status <= 400; 
               }
@@ -57,7 +57,7 @@ async function GetToken():Promise<any> {
 }    
 
 
-export const AccountSingleResult = async (data: ICompanyData):Promise<any> => {    
+export const AccountSingleResultAPI = async (data: ICompanyData):Promise<any> => {    
     
     //0. 국가 코드 변환token 값 
     // console.log(data.countryCode);
@@ -99,13 +99,13 @@ export const AccountSingleResult = async (data: ICompanyData):Promise<any> => {
                 // }
         })
         .catch(function (error):AxiosError<any> {
-            throw error;
+            throw error.response ? JSON.stringify(error.response.data) : error;
         })
 
 }    
 
 //Account 생성 및 변경 목록 전송 API
-export const AccountProvide = async (data: IAccountReq):Promise<any> => {
+export const AccountProvideAPI = async (data: IAccountReq):Promise<any> => {
 
     //Access Token Value
     const TOKEN = await GetToken();
@@ -134,13 +134,13 @@ export const AccountProvide = async (data: IAccountReq):Promise<any> => {
             "error" : "Account 생성 및 변경 목록 전송 API 오류가 발생하였습니다.",
             "response_msg" : [error.response ? JSON.stringify(error.response.data) : error]
         });
-        throw error
+        throw error.response ? JSON.stringify(error.response.data) : error;
     })
 
 }    
 
 //Account UID 발급 요청 API
-export const AccountRegister = async (data:IreqAccountRegister):Promise<any> => {
+export const AccountRegisterAPI = async (data:IreqAccountRegister):Promise<any> => {
 
     //Access Token Value
     const TOKEN = await GetToken();
@@ -168,13 +168,13 @@ export const AccountRegister = async (data:IreqAccountRegister):Promise<any> => 
             "error" : "UID 발급 API 오류가 발생하였습니다.",
             "response_msg" : [error.response ? JSON.stringify(error.response.data) : error]
         });
-        throw error
+        throw error.response ? JSON.stringify(error.response.data) : error;
     })
 
 }    
 
 //Account UID 발급 결과 전송 API
-export const AccountRegisterResult = async (data:any):Promise<any> => {
+export const AccountRegisterResultAPI = async (data:any):Promise<any> => {
 
     data = {
         "LGCompanyDivision":"EKHQ",
@@ -210,8 +210,40 @@ export const AccountRegisterResult = async (data:any):Promise<any> => {
             "error" : "UID 발급 요청 결과 전송 API 오류가 발생하였습니다.",
             "response_msg" : [error.response ? JSON.stringify(error.response.data) : error]
         });
-        throw error
+        throw error.response ? JSON.stringify(error.response.data) : error;
     })
 
 }    
+
+//Account Contact 등록
+export const ContactRegisterAPI = async (data:any):Promise<any> => {
+
+    //Access Token Value
+    const TOKEN = await GetToken();
+
+    return await axios({
+        method: "POST", 
+        url: "https://lgcorp--dev.sandbox.my.salesforce.com/services/apexrest/CD/Contact/Register", // 개발 
+        //url: "https://lgcorp--sandbox.sandbox.my.salesforce.com/services/apexrest/CD/Contact/Register", // 품질
+        //url: "https://lgcorp.my.salesforce.com/services/apexrest/CD/Contact/Register", //운영
+        headers: {
+            Authorization: `Bearer ${TOKEN}`
+          },
+        data, 
+        validateStatus: function (status) {
+            return status >= 200 && status <= 400; 
+          }
+    })
+    .then(function (response):AxiosResponse<any> {
+        return response.data;
+    })
+    .catch (function (error):AxiosError<any> {                        
+        console.log({
+            "error" : "ContactRegister 오류가 발생하였습니다.",
+            "response_msg" : [error.response ? JSON.stringify(error.response.data) : error]
+        });
+        throw error.response ? JSON.stringify(error.response.data) : error;
+    })
+
+}  
 

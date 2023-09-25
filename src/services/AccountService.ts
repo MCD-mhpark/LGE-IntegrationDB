@@ -1,7 +1,8 @@
 import { lge_eloqua, lgeSdk_eloqua } from '@src/routes/Auth';
 import { IAccountRes } from "@src/api/interface/interfaceApi"
-import { Account, AccountForm } from "@src/models/AccountDTD"
+import { Account, AccountForm, EloquaAccount, SearchAccount} from "@src/models/AccountDTD"
 import logger from '../public/modules/jet-logger/lib/index';
+import * as utils from "@src/util/etc_function";
 
 
 const integrationAccount = async (IntgrationDB_AccountData: IAccountRes): Promise<any> => {
@@ -52,44 +53,36 @@ const integrationAccount = async (IntgrationDB_AccountData: IAccountRes): Promis
 */
 ////////////////////////////////////////////////////////
 //Account Search
-// const searchAccount = async (accountUID:string): Promise<any> => {
+const searchAccount = async (countryCode:string, companyNum:string): Promise<SearchAccount> => {
    
-//     let search = ''
-//     try {
-//         const options = {
-//         search: `M_Account_UID1='${accountUID}'`, //`name='3M'`
-//         depth: "Minimal" // id만 확인하면 되어서 최소 정보만 확인하면 됨
-//         };
+    let returnResult: SearchAccount = {result: "", companyName: "", uID: ""}
 
-//         const sResult = await lge_eloqua.accounts.getAll(options);
-//         //console.log(sResult);
-        
-//         /*{
-//             elements: [
-//               {
-//                 type: 'Account',
-//                 id: '11',
-//                 createdAt: '1643348137',
-//                 depth: 'minimal',
-//                 description: '',
-//                 name: '3M',
-//                 updatedAt: '1692751526',
-//                 fieldValues: [Array]
-//               }
-//             ],
-//             page: 1,
-//             pageSize: 1000,
-//             total: 1
-//           }*/
-//         //console.log(sResult.elements);
-//         return sResult
+    try {
+        let options = { search: "", depth: "Complete" };
 
-//     } catch (error) {
-//         console.error('에러가 발생');
-//         console.error(error);
-//         throw error;
-//     }
-// };
+        if(countryCode = "KR") options.search =  `M_Country="${countryCode}"M_Business_Registration_Number1"${companyNum}"`
+        if(countryCode != "KR") options.search =  `M_Country="${countryCode}"M_Tax_ID1"${companyNum}"`
+
+        const sResult = await lge_eloqua.accounts.getAll(options);
+        //console.log(sResult);
+        const data: EloquaAccount[] = sResult.elements;
+ 
+        if(data.length != 0) {
+            returnResult.uID = utils.matchFieldValues(data[0], "100424");
+            returnResult.companyName = data[0].name;
+            returnResult.result = "success"
+        }else{
+            returnResult.result = "eloqua Account과 매칭되는 값 없음"
+        }
+
+        return returnResult
+
+    } catch (error) {
+        logger.err('searchAccount Service Error');
+        logger.err(error);
+        return error;
+    }
+};
 
 //Account CREATE
 // const createAccount = async(): Promise<any> => {
@@ -250,7 +243,8 @@ const integrationAccount = async (IntgrationDB_AccountData: IAccountRes): Promis
 
 
 export default {
-    integrationAccount
+    integrationAccount,
+    searchAccount
 }
 
 
