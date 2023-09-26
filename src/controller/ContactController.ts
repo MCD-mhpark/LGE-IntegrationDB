@@ -128,7 +128,7 @@ const Send_Contact = async (req:Request, res: Response):Promise<void> => {
             
             //2. 형식 변환 후 Data 전송
             const customOjbectData:CustomObjectData[] = resdata.elements;
-
+            
             let result = await ContactService.ContactRegister(customOjbectData);
             logger.warn(result);
 
@@ -155,8 +155,6 @@ const Send_Contact = async (req:Request, res: Response):Promise<void> => {
             for(const data of result.Contact){
                 console.log(data)
                 console.log(data.SourceSystemKey1);
-
-                
 
             }
 

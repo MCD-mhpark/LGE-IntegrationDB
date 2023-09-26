@@ -184,78 +184,78 @@ const Get_COD = async (mode:string, pageindex: number) => {
 }
 
 //Data 형식 Convert 후 통합 DB 데이터 전송
-//const ContactRegister =  async (customOjbectData: any) => {
-//     try{
-//         let sendCreateData: { Contact: SendContactData[] } = { Contact: [] };
-//         let sendUpdateData: { Contact: SendContactData[] } = { Contact: [] };
+const ContactRegister =  async (customOjbectData: any) => {
+    try{
+        let sendCreateData: { Contact: SendContactData[] } = { Contact: [] };
+        let sendUpdateData: { Contact: SendContactData[] } = { Contact: [] };
     
-//         // contact 등록 API에 맞게 Data 형식 covert
-//         for(const data of customOjbectData){
-//             console.log("data>>>>>>>>>", data);
-//             let convertdata = new SendContactData(data);
-//             if(utils.matchFieldValues(data, "3280") !== ""){
-//                 //UPDATE Array push
-//                 sendUpdateData.Contact.push(convertdata);
-//             }else{
-//                 //CREATE Array push
-//                 sendCreateData.Contact.push(convertdata);
-//             }
-//         }
-//         // let test = {
-//         //     "Contact" : 
-//         //         [
-//         //             { 
-//         //                 "LGCompanyDivision" : "EKHQ",
-//         //                 "SourceSystemDivision" : "Eloqua", 
-//         //                 "SourceSystemKey1" : "2134123542345134",
-//         //                 "Email" : "PostMan05@email.com",
-//         //                 "LastName" : "성12",
-//         //                 "FirstName" : "이름12",
-//         //                 "PhoneNumber" : "0101234123412312312312123",
-//         //                 "MobilePhone": "01012341234232323123412340",
-//         //                 "Zip": "123456",
-//         //                 "JobRole" : "직책", 
-//         //                 "JobTitle" : "직무",
-//         //                 "Department" : "개발1팀",
-//         //                 "AccountName" : "골든플래닛",
-//         //                 "AccountUID" : "test",  
-//         //                 "CountryCode" : "KR" , 
-//         //                 "Attribute1" : "FullName",
-//         //                 "Attribute2" : "City",
-//         //                 "Attribute3" : "LastActivity",
-//         //                 "Attribute4" : "CreatedDate",
-//         //                 "Attribute5" : "LastModifiedDate",
-//         //                 "PrivacyPolicyAgreement" : "Y" , 
-//         //                 "ThirdPartyAgreement" : "Y" , 
-//         //                 "TransferThirdCountriesAgreement" : "Y",
-//         //                 "MarketingAgreement" : "Y",
-//         //                 "SrcModifyDate" : "20220920", 
-//         //                 "SrcModifierId" : "goldenplanet", 
-//         //                 "SrcModifierName" : "테스트", 
-//         //                 "SrcCreationDate" : "20220920" , 
-//         //                 "SrcCreatorId" : "goldenplanet" , 
-//         //                 "SrcCreatorName" : "테스트"
-//         //             }
-//         //         ]
-//         //     }   
-//         logger.warn(sendCreateData);
-//         logger.warn(sendUpdateData);
+        // contact 등록 API에 맞게 Data 형식 covert
+        for(const data of customOjbectData){
+            console.log("data>>>>>>>>>", data);
+            let convertdata = new SendContactData(data);
+            if(utils.matchFieldValues(data, "3280") !== ""){
+                //UPDATE Array push
+                sendUpdateData.Contact.push(convertdata);
+            }else{
+                //CREATE Array push
+                sendCreateData.Contact.push(convertdata);
+            }
+        }
+        // let test = {
+        //     "Contact" : 
+        //         [
+        //             { 
+        //                 "LGCompanyDivision" : "EKHQ",
+        //                 "SourceSystemDivision" : "Eloqua", 
+        //                 "SourceSystemKey1" : "2134123542345134",
+        //                 "Email" : "PostMan05@email.com",
+        //                 "LastName" : "성12",
+        //                 "FirstName" : "이름12",
+        //                 "PhoneNumber" : "0101234123412312312312123",
+        //                 "MobilePhone": "01012341234232323123412340",
+        //                 "Zip": "123456",
+        //                 "JobRole" : "직책", 
+        //                 "JobTitle" : "직무",
+        //                 "Department" : "개발1팀",
+        //                 "AccountName" : "골든플래닛",
+        //                 "AccountUID" : "test",  
+        //                 "CountryCode" : "KR" , 
+        //                 "Attribute1" : "FullName",
+        //                 "Attribute2" : "City",
+        //                 "Attribute3" : "LastActivity",
+        //                 "Attribute4" : "CreatedDate",
+        //                 "Attribute5" : "LastModifiedDate",
+        //                 "PrivacyPolicyAgreement" : "Y" , 
+        //                 "ThirdPartyAgreement" : "Y" , 
+        //                 "TransferThirdCountriesAgreement" : "Y",
+        //                 "MarketingAgreement" : "Y",
+        //                 "SrcModifyDate" : "20220920", 
+        //                 "SrcModifierId" : "goldenplanet", 
+        //                 "SrcModifierName" : "테스트", 
+        //                 "SrcCreationDate" : "20220920" , 
+        //                 "SrcCreatorId" : "goldenplanet" , 
+        //                 "SrcCreatorName" : "테스트"
+        //             }
+        //         ]
+        //     }   
+        logger.warn(sendCreateData);
+        logger.warn(sendUpdateData);
 
-//         let 9 = await LgApi.ContactRegisterAPI(sendCreateData);
-//         let updateApiResult = await LgApi.ContactUpdateAPI(sendCreateData);
+        // let 9 = await LgApi.ContactRegisterAPI(sendCreateData);
+        // let updateApiResult = await LgApi.ContactUpdateAPI(sendCreateData);
 
-//         if(createApiResult.result == "ERROR"){
-//             logger.warn(sendCreateData);
-//             throw new Error (JSON.stringify(createApiResult));
-//         }else{            
-//             return JSON.parse(ApiResult.result);
-//         }
-
-//     }catch(error){
-//         logger.err('### ContactRegister ERROR ###');
-//         return error
-//     }
-// }
+        // if(createApiResult.result == "ERROR"){
+        //     logger.warn(sendCreateData);
+        //     throw new Error (JSON.stringify(createApiResult));
+        // }else{            
+        //     return JSON.parse(ApiResult.result);
+        // }
+        
+    }catch(error){
+        logger.err('### ContactRegister ERROR ###');
+        return error
+    }
+}
 
 const Update_ContactUID = async (contactId:string, ContactUID:string) => {
 
