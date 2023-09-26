@@ -25,7 +25,7 @@ export const api_searchCompany = async (type:string, url:string, postData?:any) 
         console.error("에러:", error);
         throw error; // 오류를 호출자로 전달
       }
-    };
+};
 
 // //국내기업 검색
 // export const searchKoreaCompany = (type:string, value:any) => {

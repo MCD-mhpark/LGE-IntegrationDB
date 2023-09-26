@@ -1,5 +1,5 @@
 import * as utils from "@src/util/etc_function";
-import {convertCountry} from "@src/api/interface/interfaceApi"
+import {convertCountry, convertRegion} from "@src/api/interface/interfaceApi"
 
 export interface IReqEloqua {
     search: string;
@@ -120,6 +120,7 @@ export class ContactForm {
           new FormFieldValue("FieldValue", "158358", "Email Address", contact.emailAddress),
           new FormFieldValue("FieldValue", "163933", "Company Name", updateContact.company ?? contact.accountName),
           new FormFieldValue("FieldValue", "163934", "City", contact.city),
+          new FormFieldValue("FieldValue", "165214", "Region", convertRegion(this.getFieldValueById(contact, "100069"))),
           new FormFieldValue("FieldValue", "163935", "CountryCode", convertCountry(contact.country)),
           new FormFieldValue("FieldValue", "163927", "First Name and Last Name", this.getFieldValueById(contact, "100172")),
           new FormFieldValue("FieldValue", "163928", "BU별 Seniority", this.getFieldValueBusinessType(contact, 'Seniority')),
@@ -132,10 +133,19 @@ export class ContactForm {
           new FormFieldValue("FieldValue", "158363", "Account UID", updateContact.uID),
           new FormFieldValue("FieldValue", "163941", "Zip or Postal Code", this.getFieldValueById(contact, "100011")),
           
-          // 각 동의 항목별 KR, Global따라 매핑 되어야 하는 필드가 다름. //마지막 동의일자 폼필드 추가 필요
-          new FormFieldValue("FieldValue", "163938", "DirectMarketing_EM_TXT_SNS", this.getFieldValueById(contact, "100211")),
-          new FormFieldValue("FieldValue", "163940", "TransferOutsideCountry", this.getFieldValueById(contact, "100210")),
-          new FormFieldValue("FieldValue", "163939", "Privacy Policy_Agreed", this.getFieldValueById(contact, "100213")),
+          // 각 동의 항목별 KR, Global따라 매핑 되어야 하는 필드가 다름.
+          //개인정보동의여부
+          new FormFieldValue("FieldValue", "163939", "PrivacyPolicyAgreement", this.subsidiaryAgreeLogic(contact, this.getFieldValueById(contact , "100196"), "PP_Agreement")),
+          new FormFieldValue("FieldValue", "165191", "PrivacyPolicyAgreementLastDate", this.subsidiaryAgreeLogic(contact, this.getFieldValueById(contact , "100196"), "PP_AgreementDate")),
+          //제3자이용자동의여부
+          new FormFieldValue("FieldValue", "165192", "ThirdPartyAgreement", this.subsidiaryAgreeLogic(contact, this.getFieldValueById(contact, "100196"), "TP_Agreement")),
+          new FormFieldValue("FieldValue", "165193", "ThirdPartyAgreementLastDate", this.subsidiaryAgreeLogic(contact, this.getFieldValueById(contact , "100196"), "TP_AgreementDate")),
+          //제3국이전동의여부
+          new FormFieldValue("FieldValue", "163940", "TransferThirdCountriesAgreement", this.subsidiaryAgreeLogic(contact, this.getFieldValueById(contact, "100196"), "TTC_Agreement")),
+          new FormFieldValue("FieldValue", "165194", "TransferThirdCountriesAgreementLastDate", this.subsidiaryAgreeLogic(contact, this.getFieldValueById(contact , "100196"), "TTC_AgreementDate")),
+          //마케팅동의여부
+          new FormFieldValue("FieldValue", "163938", "MarketingAgreement", this.subsidiaryAgreeLogic(contact, this.getFieldValueById(contact, "100196"), "M_Agreement")),
+          new FormFieldValue("FieldValue", "165190", "MarketingAgreementLastDate", this.subsidiaryAgreeLogic(contact, this.getFieldValueById(contact , "100196"), "M_AgreementDate")),
 
           new FormFieldValue("FieldValue", "165117", "통합DB 전송 날짜", utils.getToday()),
       ];
@@ -152,6 +162,153 @@ export class ContactForm {
     return date.toISOString().slice(0, 10); // yyyy-mm-dd 형식으로 변환
   }
 
+  //Subsidiary: 100196
+  private subsidiaryAgreeLogic(contact: Contact, subsidiary: string, value: string): string {
+
+  // *Subsidiary가 KR인 경우 (조건 추후 추가 예정)
+  // 1. 개인정보활용동의: KR_Privacy Policy_Collection and Usage => Privacy Policy Agreement
+  // 2. 마케팅정보수신동의: KR_Privacy Policy_Optin => Marketing Agreement
+  // 3. 마케팅활용동의: KR_Privacy Policy_Optin_Usage (X)
+  // 4. 국외이전동의: KR_Privacy Policy_Transfer PI Aborad =>TransferThirdCountriesAgreement
+  // 5. 제3자동의: KR_Privacy Policy_Consignment of PI => ThirdPartyAgreement
+
+  //*글로벌조건 Subsidiary가 KR이 아닌 경우 (조건 추후 변경 예정)
+  // 1. 개인정보활용동의 - Privacy Policy => Privacy Policy Agreement
+  // 2. 마케팅정보수신동의 - DirectMarketing_EM_TXT_SNS =>  Marketing Agreement
+  // 3. 마케팅활용동의 - DirectMarketing_TargetedAd  (X)
+  // 4. 국외이전동의 - TransferOutsideCountry =>TransferThirdCountriesAgreement
+
+
+  ///////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////////
+  //리팩토링 필요 함
+  ///////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////////
+  
+  // if (subsidiary === "KR") {
+  //   const krMappings: Record<string, string> = {
+  //     PP_Agreement: "100315",
+  //     PP_AgreementDate: "100320",
+  //     TP_Agreement: "100316",
+  //     TTC_Agreement: "100317",
+  //     M_Agreement: "100318",
+  //     M_AgreementDate: "100319",
+  //   };
+
+  //   return this.getFieldValueById(contact, krMappings[value]) || "";
+
+  // } else if (subsidiary !== "N/A" && subsidiary !== "undefined") {
+  //   const globalMappings: Record<string, string> = {
+  //     PP_Agreement: "100213",
+  //     PP_AgreementDate: "100199",
+  //     TP_Agreement: "N/A",
+  //     TP_AgreementDate: "",
+  //     TTC_Agreement: "100210",
+  //     TTC_AgreementDate: "100208",
+  //     M_Agreement: "100211",
+  //     M_AgreementDate: "100200",
+  //   };
+
+  //   return globalMappings[value] || "N/A";
+
+  // } else {
+  //   return "N/A";
+  // }
+
+    let result:string = "";
+
+      if(subsidiary == "KR"){
+
+        if(value == "PP_Agreement"){
+          //KR_Privacy Policy_Collection and Usage
+          result = this.mapAgressValue(this.getFieldValueById(contact, "100315"));
+        }
+        if(value == "PP_AgreementDate"){
+          //KR_Privacy Policy_Collection and Usage_AgreedDate
+          result = this.formatUnixTimestamp(this.getFieldValueById(contact, "100320"));
+        }
+
+        if(value == "TP_Agreement"){
+          //KR_Privacy Policy_Consignment of PI
+          result = this.mapAgressValue(this.getFieldValueById(contact, "100316"));
+        }
+        if(value == "TP_AgreementDate"){
+          //필드가 존재하지 않음
+          result = "";
+        }
+
+        if(value == "TTC_Agreement"){
+          //KR_Privacy Policy_Transfer PI Aborad
+          result = this.mapAgressValue(this.getFieldValueById(contact, "100317"));
+        }
+        if(value = "TTC_AgreementDate"){
+          // 필드가 존재하지 않음
+          result = "";
+        }
+
+        if(value == "M_Agreement"){
+          //KR_Privacy Policy_Optin
+          result = this.mapAgressValue(this.getFieldValueById(contact, "100318"));
+        }
+        if(value == "M_AgreementDate"){
+          //KR_Privacy Policy_Optin_Date
+          result = this.formatUnixTimestamp(this.getFieldValueById(contact, "100319"));
+        }
+
+      }else if (subsidiary != "KR" && subsidiary != "N/A"){
+
+        if(value == "PP_Agreement"){
+          //Privacy Policy_Agreed
+          result = this.mapAgressValue(this.getFieldValueById(contact, "100213"));
+        }
+        if(value == "PP_AgreementDate"){
+          //Privacy Policy_AgreedDate
+          result = this.formatUnixTimestamp(this.getFieldValueById(contact, "100199"));
+        }
+
+        if(value == "TP_Agreement"){
+          result = "N/A"
+        }
+        if(value == "TP_AgreementDate"){
+          result = ""
+        }
+
+        if(value == "TTC_Agreement"){
+          //TransferOutsideCountry
+          result = this.mapAgressValue(this.getFieldValueById(contact, "100210"));
+        }
+        if(value == "TTC_AgreementDate"){
+          //TransferOutsideCountry_AgreedDate
+          result = this.formatUnixTimestamp(this.getFieldValueById(contact, "100208"));
+        }
+
+        if(value == "M_Agreement"){
+          //DirectMarketing_EM_TXT_SNS
+          result = this.mapAgressValue(this.getFieldValueById(contact, "100211"));
+        }  
+        if(value == "M_AgreementDate"){
+          //DirectMarketing_EM_TXT_SNS_AgreedDate
+          result = this.formatUnixTimestamp(this.getFieldValueById(contact, "100200"));
+        }
+
+      }else{
+        //N/A 이거나 undefined
+          result = "N/A"
+      }
+
+    return result;
+
+  }
+
+  private mapAgressValue(value: string): string {
+    if (value === "Yes") {
+        return "Y";
+    } else if (value === "No") {
+        return "N";
+    } else {
+        return "N/A";
+    }
+}
 
   //Business Unit
   private getFieldValueBusinessType( contact:Contact, field:string ): string | undefined {
@@ -297,11 +454,13 @@ export class SendContactData {
   LGCompanyDivision: string;
   SourceSystemDivision: string;
   SourceSystemKey1: string;
+  ContactUID: string;
   Email: string;
   LastName: string;
   FirstName: string;
   PhoneNumber: string;
   MobilePhone: string;
+  Region: string;
   Zip: string;
   Title: string;
   JobRole: string;
@@ -317,7 +476,7 @@ export class SendContactData {
   Attribute5: string;
   PrivacyPolicyAgreement: string;
   PrivacyPolicyAgreementLastDate: string;
-  //ThirdPartyAgreement: string;
+  ThirdPartyAgreement: string;
   ThirdPartyAgreementLastDate: string;
   TransferThirdCountriesAgreement: string;
   TransferThirdCountriesAgreementLastDate: string;
@@ -335,10 +494,12 @@ export class SendContactData {
       this.SourceSystemDivision = "Eloqua";
       this.SourceSystemKey1 = customObjectData.contactId;
       this.Email = customObjectData.name;
+      this.ContactUID =  this.getFieldValueById(customObjectData, "3280"); //Contact UID
       this.LastName = this.getFieldValueById(customObjectData, "2943"); //Last Name
       this.FirstName = this.getFieldValueById(customObjectData, "2942"); //First Name
       this.PhoneNumber = this.getFieldValueById(customObjectData, "3149"); //Mobile Phone
       this.MobilePhone = this.getFieldValueById(customObjectData, "3148"); //Business Phone
+      this.Region = this.getFieldValueById(customObjectData, "3286"); //Region
       this.Zip = this.getFieldValueById(customObjectData, "3161"); //Zip or Postal Code
       this.Title = this.getFieldValueById(customObjectData, "3150"); //BU별 Seniority
       this.JobRole = this.getFieldValueById(customObjectData, "3156"); //BU별 Job Function
@@ -353,17 +514,17 @@ export class SendContactData {
       this.Attribute4 = this.formatUnixTimestamp(this.getFieldValueById(customObjectData, "3167"));  //Date Created => Eloqua 데이터 생성일자
       this.Attribute5 = this.formatUnixTimestamp(this.getFieldValueById(customObjectData, "3166")); //Date Modified => Eloqua 데이터 수정일자
       //개인정보동의여부
-      this.PrivacyPolicyAgreement = this.getFieldValueById(customObjectData, "3159"); //Privacy Policy_Agreed
-      this.PrivacyPolicyAgreementLastDate = "";
+      this.PrivacyPolicyAgreement = this.getFieldValueById(customObjectData, "3159"); //PrivacyPolicyAgreement
+      this.PrivacyPolicyAgreementLastDate = this.formatUnixTimestamp(this.getFieldValueById(customObjectData, "3282")); //PrivacyPolicyAgreementLastDat
       //제3자이용동의여부
-      //this.ThirdPartyAgreement = this.getFieldValueById(customObjectData, "");
-      this.ThirdPartyAgreementLastDate = "";
+      this.ThirdPartyAgreement = this.getFieldValueById(customObjectData, "3281"); //ThirdPartyAgreement
+      this.ThirdPartyAgreementLastDate = this.formatUnixTimestamp(this.getFieldValueById(customObjectData, "3283")); //ThirdPartyAgreementLastDate
       //제3국이전동의여부
-      this.TransferThirdCountriesAgreement = this.getFieldValueById(customObjectData, "3160"); //TransferOutsideCountry
-      this.TransferThirdCountriesAgreementLastDate = "";
+      this.TransferThirdCountriesAgreement = this.getFieldValueById(customObjectData, "3160"); //TransferThirdCountriesAgreement
+      this.TransferThirdCountriesAgreementLastDate = this.formatUnixTimestamp(this.getFieldValueById(customObjectData, "3284")); //TransferThirdCountriesAgreementLastDate
       //마케팅동의여부
-      this.MarketingAgreement = this.getFieldValueById(customObjectData, "3158"); //DirectMarketing_EM_TXT_SNS
-      this.MarketingAgreementLastDate = "";
+      this.MarketingAgreement = this.getFieldValueById(customObjectData, "3158"); //MarketingAgreement
+      this.MarketingAgreementLastDate = this.formatUnixTimestamp(this.getFieldValueById(customObjectData, "3285")); //MarketingAgreementLastDate
 
       this.SrcModifyDate = utils.getTodayWithTime();
       this.SrcModifierId = "ELOQUA"

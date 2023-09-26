@@ -26,11 +26,32 @@ export interface IreqAccountRegister {
       Country: string;
       AccountName?: string;
       LGCompanyDivision: string;
+      SourceSystemKey1: string;
+      SourceSystemDivision: string;
       CompanyRegistrationNumber?: string;
       TaxId?: string;
       DunsNumber?: string;
     }[];
 } 
+
+export function convertRegion(region: string): string {
+    const RegionMap: { [key: string]: string } = {
+        "Asia": "AS",
+        "CIS": "AS",
+        "Europe": "EU",
+        "India": "AS",
+        "Latin America and the Caribbean": "SA",
+        "Middle East & Africa": "AF",
+        "North America": "NA",
+        "N/A": ""
+    }
+    const mappedRegion = RegionMap[region];    
+    if (mappedRegion === undefined) {
+        return "";
+    }
+    return mappedRegion;
+
+}
 
 export function convertCountry(country: string): string {
     const countryMap: { [key: string]: string } = {

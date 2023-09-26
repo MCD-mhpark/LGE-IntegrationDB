@@ -113,11 +113,11 @@ const Send_Contact = async (req:Request, res: Response):Promise<void> => {
         // 최종: 통합 DB로 COD 데이터 전송
         logger.info(`##################### START SEND CONTACT DATA #####################`)
         
+        //1000건 넘을경우 pageing 처리
         while(nextSearch){
-
             logger.info(page);
-            
-            //1. yesterDay Custom Object Data
+        
+            //1. yesterDay Custom Object Data 조회
             const resdata = await ContactService.Get_COD("send",page);
             //1-1. element == 0 이면 While 문 break;
             if( !resdata.elements || resdata.elements.length == 0 ) { 
@@ -126,17 +126,39 @@ const Send_Contact = async (req:Request, res: Response):Promise<void> => {
                 break; 
             };
             
-            
             //2. 형식 변환 후 Data 전송
             const customOjbectData:CustomObjectData[] = resdata.elements;
+
             let result = await ContactService.ContactRegister(customOjbectData);
-            console.log("result", result);
-            
-            // for(const data of customOjbectData){
-            //     let convertdata = new SendContactData(data);
-            //     sendData.Contact.push(convertdata);
-            //     console.log(sendData);
-            // }
+            logger.warn(result);
+
+            //3. COD 전송 여부 필드 = "Y" AND Contact UID 필드 Update
+            // {
+            //     "Status": "Success",
+            //     "Contact": [
+            //       {
+            //         "LGCompanyDivision": "EKHQ",
+            //         "SourceSystemDivision": "Eloqua",
+            //         "SourceSystemKey1": "164455",
+            //         "ContactUID": "UC00002166",
+            //         "AccountUID": "KR00302600"
+            //       },
+            //       {
+            //         "LGCompanyDivision": "EKHQ",
+            //         "SourceSystemDivision": "Eloqua",
+            //         "SourceSystemKey1": "164455",
+            //         "ContactUID": "UC00002166",
+            //         "AccountUID": "KR00302600"
+            //       }
+            //     ]
+            //   }
+            for(const data of result.Contact){
+                console.log(data)
+                console.log(data.SourceSystemKey1);
+
+                
+
+            }
 
 
 

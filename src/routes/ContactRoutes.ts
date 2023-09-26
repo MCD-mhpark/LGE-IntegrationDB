@@ -63,7 +63,7 @@ function slogPath (req: Request, res: Response, next:NextFunction) {
     logger.settings.filepath = `./LGE_logs/singlex/${utils.getToday()}_jet-logger.log`;
     next();
 }
-router.post('/gpSinglexAPI', cors(corsOptions) , async (req: Request, res: Response):Promise<void> => {
+router.post('/gpSinglexAPI', async (req: Request, res: Response):Promise<void> => {
     console.log(req.body);
     try{
         let result = await api_searchCompany(req.body.type, req.body.url ,req.body.value);
