@@ -34,7 +34,7 @@ async function GetToken():Promise<any> {
             url: "https://lgcorp--sandbox.sandbox.my.salesforce.com/services/oauth2/token", // 품질
             //url: "https://lgcorp.my.salesforce.com/services/oauth2/token", //운영
             headers: {'content-type': 'application/x-www-form-urlencoded'},
-            data: LgToken_STG, 
+            data: LgToken_PRD, 
             validateStatus: function (status) {
                 return status >= 200 && status <= 400; 
               }
@@ -87,8 +87,8 @@ export const AccountSingleResultAPI = async (data: ICompanyData):Promise<any> =>
         return await axios({
             method: "POST", 
             //url: "https://lgcorp--dev.sandbox.my.salesforce.com/services/apexrest/CD/AccountSingle/resultset", // 개발
-            url: "https://lgcorp--sandbox.sandbox.my.salesforce.com/services/apexrest/CD/AccountSingle/resultset", // 품질
-            //url: "https://lgcorp.my.salesforce.com/services/apexrest/CD/AccountSingle/resultset", // 운영
+            //url: "https://lgcorp--sandbox.sandbox.my.salesforce.com/services/apexrest/CD/AccountSingle/resultset", // 품질
+            url: "https://lgcorp.my.salesforce.com/services/apexrest/CD/AccountSingle/resultset", // 운영
             headers: {
                 Authorization: `Bearer ${TOKEN}`
             },
@@ -121,8 +121,8 @@ export const AccountProvideAPI = async (data: IAccountReq):Promise<any> => {
     return await axios({
         method: "POST", 
         //url: "https://lgcorp--dev.sandbox.my.salesforce.com/services/apexrest/CD/AccountProvide/resultset", // 개발 
-        url: "https://lgcorp--sandbox.sandbox.my.salesforce.com/services/apexrest/CD/AccountProvide/resultset", // 품질
-        //url: "https://lgcorp.my.salesforce.com/services/apexrest/CD/AccountProvide/resultset", //운영
+        //url: "https://lgcorp--sandbox.sandbox.my.salesforce.com/services/apexrest/CD/AccountProvide/resultset", // 품질
+        url: "https://lgcorp.my.salesforce.com/services/apexrest/CD/AccountProvide/resultset", //운영
         headers: {
             Authorization: `Bearer ${TOKEN}`
           },
@@ -156,8 +156,8 @@ export const AccountRegisterAPI = async (data:IreqAccountRegister):Promise<any> 
     return await axios({
         method: "POST", 
         //url: "https://lgcorp--dev.sandbox.my.salesforce.com/services/apexrest/CD/Account/Register", // 개발 
-        url: "https://lgcorp--sandbox.sandbox.my.salesforce.com/services/apexrest/CD/Account/Register", // 품질
-        //url: "https://lgcorp.my.salesforce.com/services/apexrest/CD/Account/Register", //운영
+        //url: "https://lgcorp--sandbox.sandbox.my.salesforce.com/services/apexrest/CD/Account/Register", // 품질
+        url: "https://lgcorp.my.salesforce.com/services/apexrest/CD/Account/Register", //운영
         headers: {
             Authorization: `Bearer ${TOKEN}`
           },
@@ -198,8 +198,8 @@ export const AccountRegisterResultAPI = async (data:any):Promise<any> => {
     return await axios({
         method: "POST", 
         //url: "https://lgcorp--dev.sandbox.my.salesforce.com/services/apexrest/ARI/result/resultset", // 개발 
-        url: "https://lgcorp--sandbox.sandbox.my.salesforce.com/services/apexrest/ARI/result/resultset", // 품질
-        //url: "https://lgcorp.my.salesforce.com/services/apexrest/ARI/result/resultset", //운영
+        //url: "https://lgcorp--sandbox.sandbox.my.salesforce.com/services/apexrest/ARI/result/resultset", // 품질
+        url: "https://lgcorp.my.salesforce.com/services/apexrest/ARI/result/resultset", //운영
         headers: {
             Authorization: `Bearer ${TOKEN}`
           },
@@ -232,8 +232,8 @@ export const ContactRegisterAPI = async (data:any):Promise<any> => {
     return await axios({
         method: "POST", 
         //url: "https://lgcorp--dev.sandbox.my.salesforce.com/services/apexrest/CD/Contact/Register", // 개발 
-        url: "https://lgcorp--sandbox.sandbox.my.salesforce.com/services/apexrest/CD/Contact/Register", // 품질
-        //url: "https://lgcorp.my.salesforce.com/services/apexrest/CD/Contact/Register", //운영
+        //url: "https://lgcorp--sandbox.sandbox.my.salesforce.com/services/apexrest/CD/Contact/Register", // 품질
+        url: "https://lgcorp.my.salesforce.com/services/apexrest/CD/Contact/Register", //운영
         headers: {
             Authorization: `Bearer ${TOKEN}`
           },
@@ -264,8 +264,8 @@ export const ContactUpdateAPI = async (data:any):Promise<any> => {
     return await axios({
         method: "POST", 
         //url: "https://lgcorp--dev.sandbox.my.salesforce.com/services/apexrest/CD/Contact/Updater", // 개발 
-        url: "https://lgcorp--sandbox.sandbox.my.salesforce.com/services/apexrest/CD/Contact/Updater", // 품질
-        //url: "https://lgcorp.my.salesforce.com/services/apexrest/CD/Contact/Updater", //운영
+        //url: "https://lgcorp--sandbox.sandbox.my.salesforce.com/services/apexrest/CD/Contact/Updater", // 품질
+        url: "https://lgcorp.my.salesforce.com/services/apexrest/CD/Contact/Updater", //운영
         headers: {
             Authorization: `Bearer ${TOKEN}`
           },
