@@ -120,6 +120,7 @@ export class ContactForm {
           new FormFieldValue("FieldValue", "158358", "Email Address", contact.emailAddress),
           new FormFieldValue("FieldValue", "163933", "Company Name", updateContact.company ?? contact.accountName),
           new FormFieldValue("FieldValue", "163934", "City", contact.city),
+          new FormFieldValue("FieldValue", "165096", "Contact UID", this.getFieldValueById(contact, "100460")),
           new FormFieldValue("FieldValue", "165214", "Region", convertRegion(this.getFieldValueById(contact, "100069"))),
           new FormFieldValue("FieldValue", "163935", "CountryCode", convertCountry(contact.country)),
           new FormFieldValue("FieldValue", "163927", "First Name and Last Name", this.getFieldValueById(contact, "100172")),
@@ -454,7 +455,7 @@ export class SendContactData {
   LGCompanyDivision: string;
   SourceSystemDivision: string;
   SourceSystemKey1: string;
-  ContactUID: string;
+  UID: string;
   Email: string;
   LastName: string;
   FirstName: string;
@@ -492,9 +493,9 @@ export class SendContactData {
   constructor(customObjectData: CustomObjectData) {
       this.LGCompanyDivision = "EKHQ";
       this.SourceSystemDivision = "Eloqua";
-      this.SourceSystemKey1 = customObjectData.contactId;
+      this.SourceSystemKey1 = customObjectData.contactId+'-'+customObjectData.id;
       this.Email = customObjectData.name;
-      this.ContactUID =  this.getFieldValueById(customObjectData, "3280"); //Contact UID
+      this.UID =  this.getFieldValueById(customObjectData, "3280"); //Contact UID
       this.LastName = this.getFieldValueById(customObjectData, "2943"); //Last Name
       this.FirstName = this.getFieldValueById(customObjectData, "2942"); //First Name
       this.PhoneNumber = this.getFieldValueById(customObjectData, "3149"); //Mobile Phone

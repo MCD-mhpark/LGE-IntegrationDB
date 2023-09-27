@@ -12,7 +12,7 @@ module.exports = {
     env: {
     NODE_ENV: 'production',
     },
-    instances: 1,
+    instances: 3,
     exec_mode: "cluster",
    //tsc
    //post_update: ['npm run build'],

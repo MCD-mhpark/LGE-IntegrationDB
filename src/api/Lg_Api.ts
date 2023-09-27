@@ -18,6 +18,14 @@ const LgToken_STG: ILgToken = {
     client_secret: 'F0FA162933CC5F4C23944CFBDF49F7321467FAE7B7301CD6B8DEFB664A596891'
 }
 
+const LgToken_PRD: ILgToken = {
+    grant_type: 'password',
+    username: 'interface@lgemat.com.prod',
+    password: 'test123456',
+    client_id: '3MVG9fe4g9fhX0E4VlNOcVTAzvLuVwaaGwdvJIJfkI6ElAIgNbufECvfXx370Pe7Af_h7K23OUFoZHyjKNp0H',
+    client_secret: 'F2480329A1B32237ACD479DB8FAEC2707FE0F04729D29BCB9FD1F069436D0F4F'
+}
+
 async function GetToken():Promise<any> {
 
         return await axios({
@@ -242,7 +250,7 @@ export const ContactRegisterAPI = async (data:any):Promise<any> => {
             "error" : "ContactRegisterAPI 오류가 발생하였습니다.",
             "response_msg" : [error.response ? JSON.stringify(error.response.data) : error]
         });
-        throw error.response ? JSON.stringify(error.response.data) : error;
+        return error.response ? JSON.stringify(error.response.data) : error;
     })
 
 }  
@@ -274,7 +282,7 @@ export const ContactUpdateAPI = async (data:any):Promise<any> => {
             "error" : "ContactUpdateAPI 오류가 발생하였습니다.",
             "response_msg" : [error.response ? JSON.stringify(error.response.data) : error]
         });
-        throw error.response ? JSON.stringify(error.response.data) : error;
+        return error.response ? JSON.stringify(error.response.data) : error;
     })
 
 }  

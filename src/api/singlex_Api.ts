@@ -11,18 +11,18 @@ export const api_searchCompany = async (type:string, url:string, postData?:any) 
         if (type === "GET") {
           const response = await axios.get(url);
           // 요청 성공 시 실행되는 부분
-          console.log("데이터:", response.data);
+          // console.log("데이터:", response.data);
           return response.data;
         } else {
           const response = await axios.post(url, postData);
           // 요청 성공 시 실행되는 부분
-          console.log("응답 데이터:", response.data);
+          // console.log("응답 데이터:", response.data);
           return response.data;
         }
       } catch (error) {
         // 요청 실패 시 실행되는 부분
         // customAlert(error, 2000);
-        console.error("에러:", error);
+        // console.error("에러:", error);
         throw error; // 오류를 호출자로 전달
       }
 };

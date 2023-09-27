@@ -2,7 +2,6 @@ import { lge_eloqua, lgeSdk_eloqua } from '@src/routes/Auth';
 import { IAccountRes } from "@src/api/interface/interfaceApi"
 import { Account, AccountForm, EloquaAccount, SearchAccount} from "@src/models/AccountDTD"
 import logger from '../public/modules/jet-logger/lib/index';
-import * as utils from "@src/util/etc_function";
 
 
 const integrationAccount = async (IntgrationDB_AccountData: IAccountRes): Promise<any> => {
@@ -30,7 +29,7 @@ const integrationAccount = async (IntgrationDB_AccountData: IAccountRes): Promis
         
          // 로그에 reject 된 Promise 결과 기록
         resData.forEach((result, index) => {
-            if (result.status === 'rejected') {
+            if (result.status == 'rejected') {
                 logger.err(`Promise_allSettled at ${index} rejected with reason: ${JSON.stringify(result, null, 2)}`);
             }
         });
@@ -53,36 +52,36 @@ const integrationAccount = async (IntgrationDB_AccountData: IAccountRes): Promis
 */
 ////////////////////////////////////////////////////////
 //Account Search
-const searchAccount = async (countryCode:string, companyNum:string): Promise<SearchAccount> => {
+// const searchAccount = async (countryCode:string, companyNum:string): Promise<SearchAccount> => {
    
-    let returnResult: SearchAccount = {result: "", companyName: "", uID: ""}
+//     let returnResult: SearchAccount = {result: "", companyName: "", uID: ""}
 
-    try {
-        let options = { search: "", depth: "Complete" };
+//     try {
+//         let options = { search: "", depth: "Complete" };
 
-        if(countryCode = "KR") options.search =  `M_Country="${countryCode}"M_Business_Registration_Number1"${companyNum}"`
-        if(countryCode != "KR") options.search =  `M_Country="${countryCode}"M_Tax_ID1"${companyNum}"`
+//         if(countryCode = "KR") options.search =  `M_Country="${countryCode}"M_Business_Registration_Number1"${companyNum}"`
+//         if(countryCode != "KR") options.search =  `M_Country="${countryCode}"M_Tax_ID1"${companyNum}"`
 
-        const sResult = await lge_eloqua.accounts.getAll(options);
-        //console.log(sResult);
-        const data: EloquaAccount[] = sResult.elements;
+//         const sResult = await lge_eloqua.accounts.getAll(options);
+//         //console.log(sResult);
+//         const data: EloquaAccount[] = sResult.elements;
  
-        if(data.length != 0) {
-            returnResult.uID = utils.matchFieldValues(data[0], "100424");
-            returnResult.companyName = data[0].name;
-            returnResult.result = "success"
-        }else{
-            returnResult.result = "eloqua Account과 매칭되는 값 없음"
-        }
+//         if(data.length != 0) {
+//             returnResult.uID = utils.matchFieldValues(data[0], "100424");
+//             returnResult.companyName = data[0].name;
+//             returnResult.result = "success"
+//         }else{
+//             returnResult.result = "eloqua Account과 매칭되는 값 없음"
+//         }
 
-        return returnResult
+//         return returnResult
 
-    } catch (error) {
-        logger.err('searchAccount Service Error');
-        logger.err(error);
-        return error;
-    }
-};
+//     } catch (error) {
+//         logger.err('searchAccount Service Error');
+//         logger.err(error);
+//         return error;
+//     }
+// };
 
 //Account CREATE
 // const createAccount = async(): Promise<any> => {
@@ -243,8 +242,7 @@ const searchAccount = async (countryCode:string, companyNum:string): Promise<Sea
 
 
 export default {
-    integrationAccount,
-    searchAccount
+    integrationAccount
 }
 
 

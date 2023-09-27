@@ -7,11 +7,11 @@ export function yesterday_getDateTime(){
     start = moment(start).format("YYYY-MM-DD");
     let end: string = moment().format("YYYY-MM-DD"); 
     end = moment(end).format("YYYY-MM-DD");
-
-    return {
-        start, 
-        end
-    }
+    return start;
+    // return {
+    //     start, 
+    //     end
+    // }
 }
 
 //Custom field 매칭

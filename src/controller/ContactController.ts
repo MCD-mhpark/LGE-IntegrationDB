@@ -5,35 +5,33 @@ import {convertCountry} from "@src/api/interface/interfaceApi"
 import * as utils from "@src/util/etc_function";
 import logger from '../public/modules/jet-logger/lib/index';
 
-const test = async(req: Request, res: Response): Promise<any> =>{
-    logger.info('contact 성공성공성공성공성공');
-    console.log("12contact 성공성공성공성공성공");
-    return res.json({
-        message: "통신 성공"
-    })
-}
-
-
 /*
 * 전 날 C_DateModified 조회 Contact 기준
 * KR => 국가 = KR && 사업자등록번호 != null
 * Global => 국가 = Global 이면 TaxID != null
 */
-const UID_Process = async(req: Request, res: Response): Promise<void> => {
+const UID_Process = async(time:string): Promise<void> => {
 
-    const countryLogic = ["KR", "Global"];
+    //let time = req.body.time; //1차시기 //2차시기 
+    logger.info(time);
+    
+    const countryLogic = ["KR", "Global", "Pending"];
     const pageindex = 0;
     
     try {
         
         for(const logic of countryLogic){
-            const totalData = await ContactService.Get_ContactList(logic, pageindex);
-            console.time("Contact IntegrationDB");
-            logger.info(`##################### START ${logic} PROCESS #####################`)
-            
+            //0. 최초 1회 통신으로 totalData Count 가져옴
+            logger.info(`##################### START ${logic} PROCESS #####################`);
+
+            const totalData = await ContactService.Get_ContactList(logic, pageindex, time);
             const totalCount:number = totalData.total;
             const pageloopSize = Math.floor(totalCount / 1000) + 1
             logger.info(`totalCount : ${totalCount} pageloopSize : ${pageloopSize}`);
+            
+            if(totalCount == 0) continue; 
+    
+            console.time("Contact IntegrationDB");
             
             //* 1000 건 이상 조회 될때 페이지 처리 해야함
             for(let page:number = 1; page <= pageloopSize; page++){
@@ -41,7 +39,7 @@ const UID_Process = async(req: Request, res: Response): Promise<void> => {
                 const RESULT:any[] = [];
 
                 //1. 전 날 C_DateModified AND C_Country, 사업자등록번호, TaxID != NULL  code 조건: KR, Global
-                const resdata = await ContactService.Get_ContactList(logic, page);
+                const resdata = await ContactService.Get_ContactList(logic, page, time);
                 const contactData = resdata.elements;
                 
                 //2. UID 존재 여부 확인 및 UID 발급 요청 (KR: 국가코드 + 사업자 등록번호, Global: 국가코드 + Tax ID)
@@ -59,7 +57,7 @@ const UID_Process = async(req: Request, res: Response): Promise<void> => {
                     const updateResult:IUpdateContact = await ContactService.Check_UID(companyCode, companyName, regNum, taxId);
                     logger.info(`### CheckUID ${JSON.stringify(updateResult)} END ###`);
 
-                    if(updateResult.uID != '' && updateResult.uID != undefined){
+                    if(updateResult.uID !== '' && updateResult.uID !== undefined){
                         logger.info(`### Contact Form INSERT UID : ${updateResult.uID} ###`);
                         //3. Form Data Insert
                         const formResult = await ContactService.Insert_Form(data, updateResult);
@@ -77,12 +75,12 @@ const UID_Process = async(req: Request, res: Response): Promise<void> => {
             console.timeEnd("Contact IntegrationDB");
         }
         
-        res.json('success');
+        //res.json('success');
 
     } catch (error) {
         logger.err('### UID_Process Contact Controller Error ###');
         logger.err('error', error);
-        res.json(error);
+        //res.json(error);
     }
 
 
@@ -94,18 +92,8 @@ const UID_Process = async(req: Request, res: Response): Promise<void> => {
 * 1 UID: pending(VID)인 것들 Account UID 발급 여부 체크
 * 2. 전날동안 쌓인 COD 전송 후, 전송여부 Y로 체크
 */
-const Send_Contact = async (req:Request, res: Response):Promise<void> => {
+const Send_Contact = async ():Promise<void> => {
     
-    // const vidCheck = await ContactService.Get_COD("check",page);
-    // const vidCheckData = vidCheck.elements; 
-    // console.log('vidCheckData', vidCheckData.length);
-
-    // //UID 정상 발급 되지 않은 것들(ex. pending or null) Eloqua Account 체크.
-    // // if(vidCheckData.length != 0){
-    // //     for(data of vidCheckData){
-            
-    // //     }
-    // // }
     try {
         let page: number = 1;
         let nextSearch: boolean = true;           
@@ -117,8 +105,8 @@ const Send_Contact = async (req:Request, res: Response):Promise<void> => {
         while(nextSearch){
             logger.info(page);
         
-            //1. yesterDay Custom Object Data 조회
-            const resdata = await ContactService.Get_COD("send",page);
+            //1.통합 DB 전송 Custom Object Data 조회
+            const resdata = await ContactService.Get_COD(page);
             //1-1. element == 0 이면 While 문 break;
             if( !resdata.elements || resdata.elements.length == 0 ) { 
                 logger.info(`408번 customobject send contact data : ${resdata.total}`)
@@ -126,49 +114,60 @@ const Send_Contact = async (req:Request, res: Response):Promise<void> => {
                 break; 
             };
             
+            logger.info(`page = ${page} totalCount = ${resdata.total}`);
+
             //2. 형식 변환 후 Data 전송
-            const customOjbectData:CustomObjectData[] = resdata.elements;
-            
-            let result = await ContactService.ContactRegister(customOjbectData);
-            logger.warn(result);
+            const customOjbectData:CustomObjectData[] = resdata.elements; 
+
+            let RESTULT = await ContactService.Contact_Send(customOjbectData);
+
+            logger.warn(RESTULT);
+
+            // {
+                //     "sendCreateData": "{\"Status\":\"Success\",\"Contact\":[{\"LGCompanyDivision\":\"EKHQ\",\"SourceSystemDivision\":\"Eloqua\",\"SourceSystemKey1\":\"164455\",
+                //\"Email\":\"test@test.pl\",\"ContactUID\":\"UC00002166\",\"AccountUID\":\"KR00302600\"},{\"LGCompanyDivision\":\"EKHQ\",\"SourceSystemDivision\":\"Eloqua\",
+                //\"SourceSystemKey1\":\"170930\",\"Email\":\"test@cns.com\",\"ContactUID\":\"UC00002164\",\"AccountUID\":\"KR01650700\"}]}",
+                //     "sendUpdateData": {}
+                //   }
+                
+            logger.info(`page = ${page} Eloqua Field Update Logic Start`);
 
             //3. COD 전송 여부 필드 = "Y" AND Contact UID 필드 Update
-            // {
-            //     "Status": "Success",
-            //     "Contact": [
-            //       {
-            //         "LGCompanyDivision": "EKHQ",
-            //         "SourceSystemDivision": "Eloqua",
-            //         "SourceSystemKey1": "164455",
-            //         "ContactUID": "UC00002166",
-            //         "AccountUID": "KR00302600"
-            //       },
-            //       {
-            //         "LGCompanyDivision": "EKHQ",
-            //         "SourceSystemDivision": "Eloqua",
-            //         "SourceSystemKey1": "164455",
-            //         "ContactUID": "UC00002166",
-            //         "AccountUID": "KR00302600"
-            //       }
-            //     ]
-            //   }
-            for(const data of result.Contact){
-                console.log(data)
-                console.log(data.SourceSystemKey1);
-
+            //3-1. sendCreateData 결과 처리 
+            if(Object.entries(RESTULT.sendCreateData).length !== 0 && RESTULT.sendCreateDat !== 'fail'){
+                let createData = JSON.parse(RESTULT.sendCreateData);
+                for(const data of createData.Contact){
+                    let uidresult = await ContactService.Update_ContactUID(data.SourceSystemKey1, data.Email, data.ContactUID);
+                    logger.info(`### createstatus = ${uidresult} SourceSystemKey1 = ${data.SourceSystemKey1}, Email = ${data.Email}, ContactUID = ${data.ContactUID} ###`);
+                }
             }
 
+            //3-2. sendUpdateData 결과 처리 
+            if(Object.entries(RESTULT.sendCreateData).length !== 0){
+                let updateData = JSON.parse(RESTULT.sendUpdateData);
+                for(const data of updateData.Contact){
+                    if(data.updateResult == 'SUCCESS'){
+                        let uidresult = await ContactService.Update_ContactUID(data.SourceSystemKey1, data.Email, data.UID);
+                        logger.info(`### updatestatus = ${uidresult} SourceSystemKey1 = ${data.SourceSystemKey1}, Email = ${data.Email}, ContactUID = ${data.ContactUID} ###`);
+                    }else{
+                        let uidresult = await ContactService.Update_ContactUID(data.SourceSystemKey1, data.Email, data.UID, data.updateResultMessage);
+                        logger.info(`### updateFailstatus = ${uidresult} SourceSystemKey1 = ${data.SourceSystemKey1}, Email = ${data.Email}, ContactUID = ${data.ContactUID} updateResultMessage = ${data.updateResultMessage}###`);
+                    }
+                }
 
+            }
+            logger.info(`page = ${page} Eloqua Field Update Logic END`);
 
             page++;
         }
         
-        res.json('success');
+        //res.json('success');
 
     }catch(error){
         logger.err('### Send_Contact Controller Error ###');
         logger.err('error', error);
-        res.json(error);
+
+        //res.json(error);
     }
     
 }
@@ -178,9 +177,17 @@ const Send_Contact = async (req:Request, res: Response):Promise<void> => {
 */
 
 
+// const test = async(req: Request, res: Response): Promise<any> =>{
+//     logger.info('contact 성공성공성공성공성공');
+//     return res.json({
+//         message: "통신 성공"
+//     })
+// }
+
+
 export default {
-    test,
+    //test,
     UID_Process,
-    Send_Contact,
+    Send_Contact
     
 }

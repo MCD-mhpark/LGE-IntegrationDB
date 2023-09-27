@@ -23,8 +23,7 @@ const DB_to_Account = async(): Promise<void> =>{
         const accountData = await LgApi.AccountProvideAPI(AccountReq);
 
         logger.info(`### Account 현재 시간 생성 및 변경 목록 Count ### 
-        AccountController>> account totalPage: ${accountData.totalPage}, account totalCount: ${accountData.totalCount}`
-        );
+        AccountController>> account totalPage: ${accountData.totalPage}, account totalCount: ${accountData.totalCount}`);
         
         console.time('Account DB INSERT Time');
         

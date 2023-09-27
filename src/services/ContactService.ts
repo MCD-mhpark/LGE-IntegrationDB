@@ -6,31 +6,37 @@ import * as utils from "@src/util/etc_function";
 import logger from '../public/modules/jet-logger/lib/index';
 
 //Contact 조건에 맞게 Search List
-const Get_ContactList = async(code:string, pageindex:number): Promise<any> => {
+const Get_ContactList = async(code:string, pageindex:number, time: string): Promise<any> => {
     
     let queryString: IReqEloqua = { search: '', page: undefined , depth:''};
-    //const queryText = 
-    // "C_DateModified>" + "'" + utils.yesterday_getDateTime().start + " 00:00:00'" + 
-    // "C_DateModified<" + "'" + utils.yesterday_getDateTime().start + " 23:59:59'";
+
+    let timeQuery: string = '';
 
     //처음 조회는 totalCount를 가져오기 위해 depth minimal로 하여 Search 속도 향상
     if(pageindex == 0){
-        queryString.page = 1;
-        queryString.depth = "minimal";
+        queryString.page = 1; queryString.depth = "minimal";
     }else{
-        queryString.page = pageindex;
-        queryString.depth = "complete"
+        queryString.page = pageindex; queryString.depth = "complete"
     }
 
-    if(code = "KR"){
-        //C_Country = South Korea && 사업자 등록번호
-        //queryString.search = `C_DateModified>'2023-09-03 00:00:00'C_DateModified<'2023-09-04 23:59:59'C_Country="South Korea"C_KR_Business_Registration_Number1!=""`
+    if(time == "1차시기"){timeQuery = `C_DateModified>='${utils.yesterday_getDateTime()} 00:00:00'C_DateModified<'${utils.yesterday_getDateTime()} 15:00:00'`};
+    if(time == "2차시기"){timeQuery = `C_DateModified>'${utils.yesterday_getDateTime()} 16:00:00'C_DateModified<='${utils.yesterday_getDateTime()} 23:59:59'`};
+
+    if(code == "KR"){
+        //C_Company_Country_Code1 = South Korea && 사업자 등록번호
+        let krQuery = `C_Company_Country_Code1="KR"C_KR_Business_Registration_Number1!=""C_Common_Field__51!="통합DB제외"`
+        queryString.search = timeQuery + krQuery;
         //test
-        queryString.search = `C_Company_Country_Code1="KR"C_KR_Business_Registration_Number1!=""emailAddress=test*`
-    }else if(code = "Global"){
+        //queryString.search = `C_Company_Country_Code1="KR"C_KR_Business_Registration_Number1!=""emailAddress=test*`
+    }else if(code == "Global"){
         //C_Country != NULL && South Korea && TaxID != NULL
-        queryString.search = `C_Company_Country_Code1!="KR"C_Company_Country_Code1!=""C_KR_Business_Registration_Number1!=""emailAddress=test*`
+        let globalQuery = `C_Company_Country_Code1!="KR"C_Company_Country_Code1!=""C_Tax_ID1!=""C_Common_Field__51!="통합DB제외"`
+        queryString.search = timeQuery + globalQuery
+    }else if(code == "Pending"){
+        queryString.search = `C_DateModified>='${utils.yesterday_getDateTime()} 00:00:00'C_DateModified<='${utils.yesterday_getDateTime()} 23:59:59'C_Account_UID1="pending*"`
     }
+    
+    console.log(queryString);
     
     return await lge_eloqua.contacts.getAll(queryString).then((result: any) => {
         return result
@@ -66,7 +72,7 @@ const Check_UID = async(p_CountryCode:string, p_CompanyName?:string, p_RegNum?: 
         taxId: p_TaxId
     }
 
-    if(p_CountryCode = 'KR'){
+    if(p_CountryCode == 'KR'){
         queryString.search =  `M_Company_Country_Code1='${p_CountryCode}'M_Business_Registration_Number1='${p_RegNum}'`
     }else{
         if(p_TaxId){
@@ -88,7 +94,7 @@ const Check_UID = async(p_CountryCode:string, p_CompanyName?:string, p_RegNum?: 
         // 2. 없을 경우 발급요청(companyName != null) 후 7초 대기
         }else if (eloquaAccount.elements.length == 0 && p_CompanyName !== undefined){
             logger.info(`### UID 발급 요청 ${p_CountryCode}, ${p_CompanyName}, ${p_RegNum}, ${p_TaxId} ###`);
-            console.log(reqUID);
+            //console.log(reqUID);
 
             //2-1. UID 발급 API 
             await LgApi.AccountRegisterAPI(reqUID).then(async (value: IresAccountRegister) => {
@@ -100,7 +106,7 @@ const Check_UID = async(p_CountryCode:string, p_CompanyName?:string, p_RegNum?: 
                 const issueUIDResult = await LgApi.AccountSingleResultAPI(issueUID);
 
                 //3. 발급이 된 UID Return
-                if(issueUIDResult.Account.length != 0){
+                if(issueUIDResult.Account.length !== 0){
                     //console.log('issueUIDResult', issueUIDResult);                    
                     uResult.uID = issueUIDResult.Account[0].UID;
                     uResult.company = issueUIDResult.Account[0].Name;
@@ -144,8 +150,7 @@ const Check_UID = async(p_CountryCode:string, p_CompanyName?:string, p_RegNum?: 
 const Insert_Form = async (contact:Contact, updateContact:IUpdateContact): Promise<any> => {
     const id:number = 8888;
     const convertFormData = new ContactForm(contact, updateContact);
-    console.log(convertFormData);
-    
+    //console.log(convertFormData);
 
     return await lge_eloqua.contacts.form_Create(id, convertFormData).then((result: any) => {
         //console.log(result);
@@ -159,21 +164,17 @@ const Insert_Form = async (contact:Contact, updateContact:IUpdateContact): Promi
 }
 
 
-const Get_COD = async (mode:string, pageindex: number) => {
+const Get_COD = async (pageindex: number) => {
 
     //통합DB_History Custom Object
     const id:number = 408;
     let queryString: IReqEloqua = { search: '', page: pageindex ,depth:'complete' };
 
     // ____11 : 전송완료여부 필드
-    // if(mode = "check")
-    //     //UID=pending AND UID="" 인 COD Account 다시 조회
-    //     //queryString.search = `createdAt>'2023-09-18 00:00:00'createdAt<'2023-09-22 23:59:59'Account_UID1="pending*"Account_UID1=""`
-    //     queryString.search = `'Account_UID1="pending*"Account_UID1=""`
-    if(mode = "send")
-        //queryString.search = `updatedAt>'2023-09-18 00:00:00'updatedAt<'2023-09-18 23:59:59'Account_UID1!="pending*"` ____11!=""
-        queryString.search = `updatedAt>'2023-09-25 04:00:00'updatedAt<'2023-09-25 23:59:59'`
-    
+    //queryString.search = `updatedAt>'2023-09-18 00:00:00'updatedAt<'2023-09-18 23:59:59'Account_UID1!="pending*"` ____11!=""
+    //queryString.search = `____11=""`
+    queryString.search = `updatedAt>='${utils.getToday()} 00:00:00'updatedAt<='${utils.getToday()} 23:59:59'____11=""`
+
     return await lge_eloqua.contacts.cod_Get(id, queryString).then((result: any) => {
         return result
     }).catch((error: any) => {
@@ -184,15 +185,18 @@ const Get_COD = async (mode:string, pageindex: number) => {
 }
 
 //Data 형식 Convert 후 통합 DB 데이터 전송
-const ContactRegister =  async (customOjbectData: any) => {
-    try{
+const Contact_Send =  async (customOjbectData: any) => {
+
+    try {
+        
+        let returnResult = {"sendCreateData" : {}, "sendUpdateData": {}}
         let sendCreateData: { Contact: SendContactData[] } = { Contact: [] };
         let sendUpdateData: { Contact: SendContactData[] } = { Contact: [] };
-    
-        // contact 등록 API에 맞게 Data 형식 covert
+        
+        // 1. contact 등록 API에 맞게 Data 형식 covert
         for(const data of customOjbectData){
-            console.log("data>>>>>>>>>", data);
             let convertdata = new SendContactData(data);
+
             if(utils.matchFieldValues(data, "3280") !== ""){
                 //UPDATE Array push
                 sendUpdateData.Contact.push(convertdata);
@@ -201,92 +205,99 @@ const ContactRegister =  async (customOjbectData: any) => {
                 sendCreateData.Contact.push(convertdata);
             }
         }
-        // let test = {
-        //     "Contact" : 
-        //         [
-        //             { 
-        //                 "LGCompanyDivision" : "EKHQ",
-        //                 "SourceSystemDivision" : "Eloqua", 
-        //                 "SourceSystemKey1" : "2134123542345134",
-        //                 "Email" : "PostMan05@email.com",
-        //                 "LastName" : "성12",
-        //                 "FirstName" : "이름12",
-        //                 "PhoneNumber" : "0101234123412312312312123",
-        //                 "MobilePhone": "01012341234232323123412340",
-        //                 "Zip": "123456",
-        //                 "JobRole" : "직책", 
-        //                 "JobTitle" : "직무",
-        //                 "Department" : "개발1팀",
-        //                 "AccountName" : "골든플래닛",
-        //                 "AccountUID" : "test",  
-        //                 "CountryCode" : "KR" , 
-        //                 "Attribute1" : "FullName",
-        //                 "Attribute2" : "City",
-        //                 "Attribute3" : "LastActivity",
-        //                 "Attribute4" : "CreatedDate",
-        //                 "Attribute5" : "LastModifiedDate",
-        //                 "PrivacyPolicyAgreement" : "Y" , 
-        //                 "ThirdPartyAgreement" : "Y" , 
-        //                 "TransferThirdCountriesAgreement" : "Y",
-        //                 "MarketingAgreement" : "Y",
-        //                 "SrcModifyDate" : "20220920", 
-        //                 "SrcModifierId" : "goldenplanet", 
-        //                 "SrcModifierName" : "테스트", 
-        //                 "SrcCreationDate" : "20220920" , 
-        //                 "SrcCreatorId" : "goldenplanet" , 
-        //                 "SrcCreatorName" : "테스트"
-        //             }
-        //         ]
-        //     }   
-        logger.warn(sendCreateData);
-        logger.warn(sendUpdateData);
+    
+        logger.info(`sendCreateData.Contact.length , ${sendCreateData.Contact.length}`);
+        logger.info(`sendUpdateData.Contact.length , ${sendUpdateData.Contact.length}`);
 
-        // let 9 = await LgApi.ContactRegisterAPI(sendCreateData);
-        // let updateApiResult = await LgApi.ContactUpdateAPI(sendCreateData);
+        // 2. 통합 DB 컨택 등록 요청 Process
+        if (sendCreateData.Contact.length !== 0) {
+            let createApiResult = await LgApi.ContactRegisterAPI(sendCreateData);
+            //console.log('createApiResult', createApiResult);
+            if(createApiResult.result == "ERROR"){
+                logger.warn(`################ CREATE INTERGRATION DB ERROR ################`);
+                logger.warn(createApiResult); logger.warn(sendCreateData);
+                returnResult.sendCreateData = "fail"
+            }else{            
+                returnResult.sendCreateData = createApiResult.result;
+            }
+        }
 
-        // if(createApiResult.result == "ERROR"){
-        //     logger.warn(sendCreateData);
-        //     throw new Error (JSON.stringify(createApiResult));
-        // }else{            
-        //     return JSON.parse(ApiResult.result);
-        // }
+        // 3. 통합 DB 컨택 업데이트 요청 Process
+        if (sendUpdateData.Contact.length !== 0) {
+            let updateApiResult = await LgApi.ContactUpdateAPI(sendUpdateData);
+            //console.log('updateApiResult', updateApiResult);
+            if(JSON.parse(updateApiResult.result).Contact.length == 0){
+                logger.warn(`### Update INTERGRATION DB Legth == 0 ###`);
+                logger.warn(updateApiResult); logger.warn(sendUpdateData);
+            }else{
+                returnResult.sendUpdateData = updateApiResult.result;
+            }
+        } 
+
+        //등록요청하거나 수정요청 한 Contact 이 없을경우 {"sendCreateData": {} , "sendUpdateData": {}}
+        console.log("returnResult", returnResult);
+        return returnResult
         
-    }catch(error){
-        logger.err('### ContactRegister ERROR ###');
+    } catch(error){
+        logger.err('### Contact_Send Service ERROR ###');
+        logger.err(error);
         return error
     }
 }
 
-const Update_ContactUID = async (contactId:string, ContactUID:string) => {
+const Update_ContactUID = async (sourceSystemKey1:string, Email:string ,ContactUID:string, updateResultMessage? : string) => {
 
-    // 1. contactId 통하여 emailAddress GET
-    const getEmail =  await lge_eloqua.contacts.get(contactId);
-    console.log(getEmail);
+    try{
 
+        console.log(sourceSystemKey1);
+        console.log(Email);
+        console.log(ContactUID);
+        const [contactId, CustomObjectId] = sourceSystemKey1.split('-');
+        let updateContactData = {
+            id: contactId,
+            emailAddress: Email,
+            fieldValues: [
+                        {
+                            "id": "100460",
+                            "value": ContactUID
+                        }
+                    ]
+        }
+
+        let updateCOData = {
+            fieldValues: [
+                        //Contact UID
+                        {
+                            "id": "3280",
+                            "value": ContactUID
+                        },
+                        //통합DB 전송 여부
+                        {
+                            "id": "3181",
+                            "value": "Y" 
+                        },
+                        //임시필드 1
+                        {
+                            "id": "3162",
+                            "value": updateResultMessage
+                        }
+                    ]
+            }
+
+        // 1. Contact UID 필드 업데이트 
+        await lge_eloqua.contacts.update(contactId, updateContactData);
+        //console.log(contactFieldUpdate);
+        
+        // 2. Custom Object Data 필드 업데이트
+        await lge_eloqua.contacts.cod_Update(408, CustomObjectId, updateCOData);
+        //console.log(CustomObjectFieldUpdate);
     
-    let updateData = {
-        id: contactId,
-        emailAddress: getEmail,
-        fieldValues: [
-                    {
-                        "type": "FieldValue",
-                        "id": "100460",
-                        "value": ContactUID
-                    }
-                ]
+        return 'Update_ContactUID success';
+
+    }catch(error){
+        logger.err('### Update_ContactUID Service ERROR ###');
+        return error;
     }
-    // 2. ContactUID 필드 업데이트 
-    const contactField_UID =  await lge_eloqua.contacts.update(contactId, updateData);
-    console.log();
-    
- 
-    
-    // return await lge_eloqua.contacts.cod_Get(id, queryString).then((result: any) => {
-    //     return result
-    // }).catch((err: any) => {
-    //     logger.err('### Get_COD ERROR ###');
-    //     throw err
-    // });
 
 }
 
@@ -328,7 +339,7 @@ export default {
     Check_UID,
     Insert_Form,
     Get_COD,
-    ContactRegister,
+    Contact_Send,
     Update_ContactUID
 }
 
