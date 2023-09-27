@@ -15,7 +15,8 @@ const UID_Process = async(time:string): Promise<void> => {
     //let time = req.body.time; //1차시기 //2차시기 
     logger.info(time);
     
-    const countryLogic = ["KR", "Global", "Pending"];
+    //const countryLogic = ["KR", "Global", "Pending"];
+    const countryLogic = ["Global", "Pending"];
     const pageindex = 0;
     
     try {
