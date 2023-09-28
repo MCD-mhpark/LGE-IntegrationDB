@@ -31,8 +31,8 @@ async function GetToken():Promise<any> {
         return await axios({
             method: "POST", 
             //url: "https://lgcorp--dev.sandbox.my.salesforce.com/services/oauth2/token", // 개발 
-            url: "https://lgcorp--sandbox.sandbox.my.salesforce.com/services/oauth2/token", // 품질
-            //url: "https://lgcorp.my.salesforce.com/services/oauth2/token", //운영
+            //url: "https://lgcorp--sandbox.sandbox.my.salesforce.com/services/oauth2/token", // 품질
+            url: "https://lgcorp.my.salesforce.com/services/oauth2/token", //운영
             headers: {'content-type': 'application/x-www-form-urlencoded'},
             data: LgToken_PRD, 
             validateStatus: function (status) {
