@@ -25,17 +25,6 @@ import accountRoutes from '@src/routes/AccountRoutes';
 
 const app = express();
 
-// **** SSL Setup **** //
-// let sslKeys = {};
-// if (process.env.NODE_ENV === 'production') {
-//        sslKeys = {
-//               ca: fs.readFileSync('/etc/letsencrypt/live/[도메인]/fullchain.pem'),
-//               key: fs.readFileSync('/cofig/'),
-//               cert: fs.readFileSync('/etc/letsencrypt/live/[도메인]/cert.pem'),
-//        };
-// }
-// const server = https.createServer(sslKeys, app);
-
 // Basic middleware
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));

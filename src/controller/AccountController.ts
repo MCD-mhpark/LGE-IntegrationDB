@@ -54,14 +54,14 @@ const DB_to_Account = async(): Promise<void> =>{
     }
 }
 
-// const test = async(req: Request, res: Response): Promise<any> =>{
-//     logger.info("account 성공성공성공성공성공");
-//     return res.status(200).json({
-//         message: "통신 성공"
-//     })
-// }
+const test = async(req: Request, res: Response): Promise<any> =>{
+    logger.info("account 성공성공성공성공성공");
+    return res.status(200).json({
+        message: "통신 성공"
+    })
+}
 
 export default {
-    DB_to_Account
-    //test,
+    DB_to_Account,
+    test
 }
