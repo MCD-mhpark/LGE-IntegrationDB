@@ -5,3 +5,4 @@ dist/
 !src/public/modules/eloqua-sdk/dist/
 !src/public/modules/eloqua/dist/
 !src/public/modules/eloqua/node_modules/
+config/

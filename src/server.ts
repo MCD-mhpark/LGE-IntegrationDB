@@ -2,6 +2,8 @@ import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import path from 'path';
 import cors from "cors";
+// import fs from 'fs';
+// import https from 'https';
 import helmet from 'helmet';
 import express, { Request, Response, NextFunction } from 'express';
 import logger from './public/modules/jet-logger/lib/index';
@@ -23,7 +25,16 @@ import accountRoutes from '@src/routes/AccountRoutes';
 
 const app = express();
 
-// **** Setup **** //
+// **** SSL Setup **** //
+// let sslKeys = {};
+// if (process.env.NODE_ENV === 'production') {
+//        sslKeys = {
+//               ca: fs.readFileSync('/etc/letsencrypt/live/[도메인]/fullchain.pem'),
+//               key: fs.readFileSync('/cofig/'),
+//               cert: fs.readFileSync('/etc/letsencrypt/live/[도메인]/cert.pem'),
+//        };
+// }
+// const server = https.createServer(sslKeys, app);
 
 // Basic middleware
 app.use(express.json());

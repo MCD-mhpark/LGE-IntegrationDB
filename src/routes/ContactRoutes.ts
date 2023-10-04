@@ -29,33 +29,37 @@ const router = express.Router();
 const rule = new schedule.RecurrenceRule();
 rule.hour = 15;
 rule.minute = [1, 30]; // 15시 1분과 15시 30분
-schedule.scheduleJob(rule, async () => {
-    const currentTime = new Date();
-    const time = currentTime.getMinutes() === 1 ? "1차시기" :  "2차시기";
-    console.log(currentTime.getMinutes());
-    
-    try {
-        logger.settings.filepath = `./LGE_logs/contact/${utils.getToday()}_jet-logger.log`
+if(process.env.INSTANCE_ID === '2'){
+    schedule.scheduleJob(rule, async () => {
+        const currentTime = new Date();
+        const time = currentTime.getMinutes() === 1 ? "1차시기" :  "2차시기";
+        console.log(currentTime.getMinutes());
+        
+        try {
+            logger.settings.filepath = `./LGE_logs/contact/${utils.getToday()}_jet-logger.log`
 
-        await ContactController.UID_Process(time); 
+            await ContactController.UID_Process(time); 
 
-    } catch (error) {
-        logger.err('AccountController.DB_to_Account schedule 중 오류:', error);
-    }
-});
+        } catch (error) {
+            logger.err('AccountController.DB_to_Account schedule 중 오류:', error);
+        }
+    });
+}
 //router.post('/modified', logPath, ContactController.UID_Process);
 
 // Contact Data => 통합 DB 전송 오후 4시
-schedule.scheduleJob('0 50 15 * * *', async () => {
-    try {
-        logger.settings.filepath = `./LGE_logs/contact/send/${utils.getToday()}_jet-logger.log`;
+if(process.env.INSTANCE_ID === '2'){
+    schedule.scheduleJob('0 50 15 * * *', async () => {
+        try {
+            logger.settings.filepath = `./LGE_logs/contact/send/${utils.getToday()}_jet-logger.log`;
 
-        await ContactController.Send_Contact(); 
+            await ContactController.Send_Contact(); 
 
-    } catch (error) {
-        logger.err('ContactController.Send_Contact schedule 중 오류:', error);
-    }
-});
+        } catch (error) {
+            logger.err('ContactController.Send_Contact schedule 중 오류:', error);
+        }
+    });
+}
 //router.post('/send', sendlogPath, ContactController.Send_Contact);
 
 // 랜딩페이지에서 사용하는 Company 조회

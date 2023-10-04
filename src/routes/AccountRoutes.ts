@@ -6,16 +6,18 @@ import logger from '../public/modules/jet-logger/lib/index';
 const router = express.Router();
 
 //1시간 마다 Account 정보 magration
-schedule.scheduleJob('0 * * * *', async () => {
-    try {
-        logger.settings.filepath = `./LGE_logs/account/${utils.getToday()}_jet-logger.log`
-
-        await AccountController.DB_to_Account(); 
-
-    } catch (error) {
-        logger.err('AccountController.DB_to_Account schedule 중 오류:', error);
-    }
-});
+if(process.env.INSTANCE_ID === '1'){
+    schedule.scheduleJob('0 * * * *', async () => {
+        try {
+            logger.settings.filepath = `./LGE_logs/account/${utils.getToday()}_jet-logger.log`
+    
+            await AccountController.DB_to_Account(); 
+    
+        } catch (error) {
+            logger.err('AccountController.DB_to_Account schedule 중 오류:', error);
+        }
+    });
+}
 
 //router.post('/update', logPath ,AccountController.DB_to_Account);
 
