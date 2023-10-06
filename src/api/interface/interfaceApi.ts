@@ -241,7 +241,7 @@ export function convertCountry(country: string): string {
 
     const mappedCountry = countryMap[country];    
     if (mappedCountry === undefined) {
-        return 'undefined error';
+        return "";
     }
     return mappedCountry;
 }

@@ -51,7 +51,7 @@ const UID_Process = async(time:string): Promise<void> => {
                     const companyName = data.hasOwnProperty('accountName') ? data.accountName : undefined;
                     const companyCode = utils.matchFieldValues(data, '100458'); //Company Country Code
                     const regNum = utils.matchFieldValues(data, '100398');
-                    const taxId = utils.matchFieldValues(data, '100420');
+                    const taxId = utils.matchFieldValues(data, '100437');
                     //const duns_Number: string | undefined = utils.matchFieldValues(data, '100421');
                     
                     logger.info(`email: ${email}, companyCode: ${companyCode}, uid: ${uid}, CompanyName: ${companyName}, regNum: ${regNum}, taxId: ${taxId}`);
@@ -143,9 +143,9 @@ const Send_Contact = async ():Promise<void> => {
                     logger.info(`### createstatus = ${uidresult} SourceSystemKey1 = ${data.SourceSystemKey1}, Email = ${data.Email}, ContactUID = ${data.ContactUID} ###`);
                 }
             }
-
+            logger.info(`page = ${page} Eloqua Field Update Logic END`);
             //3-2. sendUpdateData 결과 처리 
-            if(Object.entries(RESTULT.sendCreateData).length !== 0){
+            if(Object.entries(RESTULT.sendUpdateData).length !== 0){
                 let updateData = JSON.parse(RESTULT.sendUpdateData);
                 for(const data of updateData.Contact){
                     if(data.updateResult == 'SUCCESS'){
