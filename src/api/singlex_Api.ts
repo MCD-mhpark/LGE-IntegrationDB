@@ -23,7 +23,7 @@ export const api_searchCompany = async (type:string, url:string, postData?:any) 
         // 요청 실패 시 실행되는 부분
         // customAlert(error, 2000);
         // console.error("에러:", error);
-        throw error; // 오류를 호출자로 전달
+        throw error.response ? JSON.stringify(error.response.data) : error; // 오류를 호출자로 전달
       }
 };
 

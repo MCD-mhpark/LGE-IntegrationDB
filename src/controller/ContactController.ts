@@ -47,18 +47,19 @@ const UID_Process = async(time:string): Promise<void> => {
                 for(const data of contactData){
 
                     const email = data.emailAddress;
+                    const uid = utils.matchFieldValues(data, '100423') ? utils.matchFieldValues(data, '100423') : ""; 
                     const companyName = data.hasOwnProperty('accountName') ? data.accountName : undefined;
                     const companyCode = utils.matchFieldValues(data, '100458'); //Company Country Code
                     const regNum = utils.matchFieldValues(data, '100398');
                     const taxId = utils.matchFieldValues(data, '100420');
                     //const duns_Number: string | undefined = utils.matchFieldValues(data, '100421');
                     
-                    logger.info(`email: ${email}, companyCode: ${companyCode}, CompanyName: ${companyName}, regNum: ${regNum}, taxId: ${taxId}`);
+                    logger.info(`email: ${email}, companyCode: ${companyCode}, uid: ${uid}, CompanyName: ${companyName}, regNum: ${regNum}, taxId: ${taxId}`);
 
-                    const updateResult:IUpdateContact = await ContactService.Check_UID(companyCode, companyName, regNum, taxId);
+                    const updateResult:IUpdateContact = await ContactService.Check_UID(companyCode, uid, companyName, regNum, taxId);
                     logger.info(`### CheckUID ${JSON.stringify(updateResult)} END ###`);
 
-                    if(updateResult.uID !== '' && updateResult.uID !== undefined){
+                    if(updateResult.uID !== '' && updateResult.uID !== undefined && updateResult.uID !== undefined){
                         logger.info(`### Contact Form INSERT UID : ${updateResult.uID} ###`);
                         //3. Form Data Insert
                         const formResult = await ContactService.Insert_Form(data, updateResult);

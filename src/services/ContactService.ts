@@ -21,6 +21,7 @@ const Get_ContactList = async(code:string, pageindex:number, time: string): Prom
 
     if(time == "1차시기"){timeQuery = `C_DateModified>='${utils.yesterday_getDateTime()} 00:00:00'C_DateModified<'${utils.yesterday_getDateTime()} 15:00:00'`};
     if(time == "2차시기"){timeQuery = `C_DateModified>'${utils.yesterday_getDateTime()} 16:00:00'C_DateModified<='${utils.yesterday_getDateTime()} 23:59:59'`};
+    if(time == "수동업로드"){timeQuery = `C_DateModified>'2023-10-06 16:00:00'C_DateModified<='2023-10-06 23:59:59'`};
 
     if(code == "KR"){
         //C_Company_Country_Code1 = South Korea && 사업자 등록번호
@@ -36,7 +37,7 @@ const Get_ContactList = async(code:string, pageindex:number, time: string): Prom
         queryString.search = `C_DateModified>='${utils.yesterday_getDateTime()} 00:00:00'C_DateModified<='${utils.yesterday_getDateTime()} 23:59:59'C_Account_UID1="pending*"`
     }
     
-    console.log(queryString);
+    //console.log(queryString);
     
     return await lge_eloqua.contacts.getAll(queryString).then((result: any) => {
         return result
@@ -48,7 +49,7 @@ const Get_ContactList = async(code:string, pageindex:number, time: string): Prom
 }
 
 //UID 발급 프로세스
-const Check_UID = async(p_CountryCode:string, p_CompanyName?:string, p_RegNum?: string, p_TaxId? :string): Promise<any> => {
+const Check_UID = async(p_CountryCode:string, p_uid :string, p_CompanyName?:string, p_RegNum?: string, p_TaxId? :string): Promise<any> => {
     console.log("p_CountryCode", p_CountryCode);
     
     let queryString: IReqEloqua = { search: '', depth:'complete' };
@@ -91,8 +92,8 @@ const Check_UID = async(p_CountryCode:string, p_CompanyName?:string, p_RegNum?: 
             uResult.uID = utils.matchFieldValues(eloquaAccount.elements[0], '100424'); //100424: Account Fields ID
             uResult.company =  eloquaAccount.elements[0].name;
             
-        // 2. 없을 경우 발급요청(companyName != null) 후 7초 대기
-        }else if (eloquaAccount.elements.length == 0 && p_CompanyName !== undefined){
+        // 2. 없을 경우 발급요청(companyName != null) 후 5초 대기 (단, Account UID가 pending* 인 것은 요청 하지 않음)
+        }else if (eloquaAccount.elements.length == 0 && p_CompanyName !== undefined && !p_uid.startsWith('pending')){
             logger.info(`### UID 발급 요청 ${p_CountryCode}, ${p_CompanyName}, ${p_RegNum}, ${p_TaxId} ###`);
             //console.log(reqUID);
 
