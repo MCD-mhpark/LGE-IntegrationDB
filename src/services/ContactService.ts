@@ -175,7 +175,7 @@ const Get_COD = async (pageindex: number) => {
     // ____11 : 전송완료여부 필드
     //queryString.search = `updatedAt>'2023-09-18 00:00:00'updatedAt<'2023-09-18 23:59:59'Account_UID1!="pending*"` ____11!=""
     //queryString.search = `____11=""`
-    queryString.search = `updatedAt>='${utils.getToday()} 00:00:00'updatedAt<='${utils.getToday()} 23:59:59'____11=""`
+    queryString.search = `updatedAt>='${utils.getToday()} 00:00:00'updatedAt<='${utils.getToday()} 23:59:59'____11="대기대기"`
 
     return await lge_eloqua.contacts.cod_Get(id, queryString).then((result: any) => {
         return result
