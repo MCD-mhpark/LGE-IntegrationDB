@@ -21,6 +21,7 @@ const Get_ContactList = async(code:string, pageindex:number, time: string): Prom
 
     if(time == "1차시기"){timeQuery = `C_DateModified>='${utils.yesterday_getDateTime()} 00:00:00'C_DateModified<'${utils.yesterday_getDateTime()} 15:00:00'`};
     if(time == "2차시기"){timeQuery = `C_DateModified>'${utils.yesterday_getDateTime()} 16:00:00'C_DateModified<='${utils.yesterday_getDateTime()} 23:59:59'`};
+    
     if(time == "수동업로드"){timeQuery = `C_DateModified>'2023-10-06 16:00:00'C_DateModified<='2023-10-06 23:59:59'`};
 
     if(code == "KR"){
