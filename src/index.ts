@@ -10,20 +10,24 @@ import https from 'https';
 
 // **** SSL Setup **** //
 let sslKeys = {};
-// console.log(process.cwd());
-// console.log('__dirname', __dirname);
 
 //eloqua-dnb.lge.com
-if (process.env.NODE_ENV === 'production') {
-       sslKeys = {
-              key: fs.readFileSync(`${process.cwd()}/config/ssl/eloqua-dnb_lge_com_Nopasskey.pem`),
-              cert: fs.readFileSync(`${process.cwd()}/config/ssl/eloqua-dnb_lge_com_cert.pem`),
-       };
-}
+//if (process.env.NODE_ENV === 'production') {
+       // sslKeys = {
+       //        key: fs.readFileSync(`${process.cwd()}/config/ssl/eloqua-dnb_lge_com_Nopasskey.pem`),
+       //        cert: fs.readFileSync(`${process.cwd()}/config/ssl/eloqua-dnb_lge_com_cert.pem`)
+       // };
+//}
+// ca: fs.readFileSync(`${process.cwd()}/config/ssl/Chain_RootCA_Bundle.crt`),
+// passphrase: '1234'
+sslKeys = {
+       key: fs.readFileSync(`${process.cwd()}/config/sslTest/private.key`),
+       cert: fs.readFileSync(`${process.cwd()}/config/sslTest/certificate.crt`)
+};
 
 const server = https.createServer(sslKeys, app);
 //console.log(server);
-
+//let hostname = 'www.eloqua-dnb.lge.com';
 
 const SERVER_START_MSG = (
 `
