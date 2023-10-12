@@ -26,13 +26,13 @@ const Get_ContactList = async(code:string, pageindex:number, time: string): Prom
 
     if(code == "KR"){
         //C_Company_Country_Code1 = South Korea && 사업자 등록번호
-        let krQuery = `C_Company_Country_Code1="KR"C_KR_Business_Registration_Number1!=""C_Common_Field__51!="통합DB제외"`
+        let krQuery = `C_Company_Country_Code1="KR"C_KR_Business_Registration_Number1!=""C_LastName!=""C_Common_Field__51!="통합DB제외"`
         queryString.search = timeQuery + krQuery;
         //test
         //queryString.search = `C_Company_Country_Code1="KR"C_KR_Business_Registration_Number1!=""emailAddress=test*`
     }else if(code == "Global"){
         //C_Country != NULL && South Korea && TaxID != NULL
-        let globalQuery = `C_Company_Country_Code1!="KR"C_Company_Country_Code1!=""C_Tax_ID1!=""C_Common_Field__51!="통합DB제외"`
+        let globalQuery = `C_Company_Country_Code1!="KR"C_Company_Country_Code1!=""C_Tax_ID1!=""C_LastName!=""C_Common_Field__51!="통합DB제외"`
         queryString.search = timeQuery + globalQuery
     }else if(code == "Pending"){
         queryString.search = `C_DateModified>='${utils.yesterday_getDateTime()} 00:00:00'C_DateModified<='${utils.yesterday_getDateTime()} 23:59:59'C_Account_UID1="pending*"`
@@ -166,16 +166,20 @@ const Insert_Form = async (contact:Contact, updateContact:IUpdateContact): Promi
 }
 
 
-const Get_COD = async (pageindex: number) => {
+const Get_COD = async (pageindex: number, search?: string) => {
 
     //통합DB_History Custom Object
     const id:number = 408;
     let queryString: IReqEloqua = { search: '', page: pageindex ,depth:'complete' };
 
     // ____11 : 전송완료여부 필드
-    //queryString.search = `updatedAt>'2023-09-18 00:00:00'updatedAt<'2023-09-18 23:59:59'Account_UID1!="pending*"` ____11!=""
+    if(search !== undefined){
+        queryString.search = search;
+    }else{
+        queryString.search = `updatedAt>='${utils.getToday()} 00:00:00'updatedAt<='${utils.getToday()} 23:59:59'____11=""`
+    }
     //queryString.search = `____11=""`
-    queryString.search = `updatedAt>='${utils.getToday()} 00:00:00'updatedAt<='${utils.getToday()} 23:59:59'____11="대기대기"`
+    logger.info(queryString)
 
     return await lge_eloqua.contacts.cod_Get(id, queryString).then((result: any) => {
         return result
@@ -213,6 +217,7 @@ const Contact_Send =  async (customOjbectData: any) => {
 
         // 2. 통합 DB 컨택 등록 요청 Process
         if (sendCreateData.Contact.length !== 0) {
+            logger.warn(sendCreateData);
             let createApiResult = await LgApi.ContactRegisterAPI(sendCreateData);
             //console.log('createApiResult', createApiResult);
             if(createApiResult.result == "ERROR"){
@@ -247,13 +252,43 @@ const Contact_Send =  async (customOjbectData: any) => {
     }
 }
 
-const Update_ContactUID = async (sourceSystemKey1:string, Email:string ,ContactUID:string, updateResultMessage? : string) => {
+
+const Update_EloquaData = async (RESULT:any) => {
+
+    //***Update_ContactUID 함수에 대해서는 비동기 처리.
 
     try{
+        //sendCreateData 결과 처리
+        if(Object.entries(RESULT.sendCreateData).length !== 0 && RESULT.sendCreateDat !== 'fail'){
+            let createData = JSON.parse(RESULT.sendCreateData);
+            for(const data of createData.Contact){
+               Update_ContactUID(data.SourceSystemKey1, data.Email, data.ContactUID);
+            }
+        }
+    
+        //sendUpdateData 결과 처리 
+        if(Object.entries(RESULT.sendUpdateData).length !== 0){
+            let updateData = JSON.parse(RESULT.sendUpdateData);
+            for(const data of updateData.Contact){
+                if(data.updateResult == 'SUCCESS'){
+                    Update_ContactUID(data.SourceSystemKey1, data.Email, data.UID);
+                }else{
+                    Update_ContactUID(data.SourceSystemKey1, data.Email, data.UID, data.updateResultMessage);
+                }
+            }  
+        }
 
-        console.log(sourceSystemKey1);
-        console.log(Email);
-        console.log(ContactUID);
+    }
+    catch(error){
+        logger.err('### Update_EloquaData Service ERROR ###');
+        logger.err(error.message);
+        logger.err(`### status = error ${RESULT}`);
+    }
+};
+
+async function Update_ContactUID (sourceSystemKey1:string, Email:string ,ContactUID:string, updateResultMessage? : string) {
+
+    try{
         const [contactId, CustomObjectId] = sourceSystemKey1.split('-');
         let updateContactData = {
             id: contactId,
@@ -293,12 +328,13 @@ const Update_ContactUID = async (sourceSystemKey1:string, Email:string ,ContactU
         // 2. Custom Object Data 필드 업데이트
         await lge_eloqua.contacts.cod_Update(408, CustomObjectId, updateCOData);
         //console.log(CustomObjectFieldUpdate);
-    
-        return 'Update_ContactUID success';
+
+        logger.info(`status = success Email = ${Email}, ContactUID = ${ContactUID}, updateResultMessage? = ${updateResultMessage} `)
 
     }catch(error){
-        logger.err('### Update_ContactUID Service ERROR ###');
-        return error;
+        logger.err('### Update_ContactUID Function ERROR ###');
+        logger.err(error.message);
+        logger.err(`### status = error Email = ${Email}, ContactUID = ${ContactUID} ###`)
     }
 
 }
@@ -342,6 +378,6 @@ export default {
     Insert_Form,
     Get_COD,
     Contact_Send,
-    Update_ContactUID
+    Update_EloquaData
 }
 

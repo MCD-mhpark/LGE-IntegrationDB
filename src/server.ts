@@ -36,28 +36,27 @@ if (EnvVars.NodeEnv === NodeEnvs.Dev) {
   app.use(morgan('dev'));
 }
 
-// Security
-if (EnvVars.NodeEnv === NodeEnvs.Production) {
-  app.use(helmet());
-}
-
 const whitelist = ['https://b2bmkt.lge.com', 'http://127.0.0.1:5501'] ;
 // const whitelist = ["*"] ;
 
 const corsOptions = {
-	origin : function (origin:any, cb:any){
-		if(whitelist.indexOf(origin) !== -1){
-			logger.info(`cors: ${origin} >> pass`);
-			cb(null, true);
-		}else{
-			logger.info(`cors: ${origin} >> false`);
-			cb(new Error("not allow origin Error"))
-		}
-	},
-	credential: true
+  origin : function (origin:any, cb:any){
+    if(whitelist.indexOf(origin) !== -1){
+      logger.info(`cors: ${origin} >> pass`);
+      cb(null, true);
+    }else{
+      logger.info(`cors: ${origin} >> false`);
+      cb(new Error("not allow origin Error"))
+    }
+  },
+  credential: true
+}
+// Security
+if (EnvVars.NodeEnv === NodeEnvs.Production) {
+  app.use(helmet());
+  app.use(cors(corsOptions));
 }
 
-app.use(cors(corsOptions));
 
 
 //Add APIs, must be after middleware

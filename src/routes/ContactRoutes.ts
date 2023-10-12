@@ -4,26 +4,11 @@ import * as utils from "@src/util/etc_function";
 import {api_searchCompany} from "@src/api/singlex_Api";
 import logger from '../public/modules/jet-logger/lib/index';
 import * as schedule from 'node-schedule';
-import cors from "cors";
 
 const router = express.Router();
-// const whitelist = ['https://b2bmkt.lge.com', 'http://127.0.0.1:5500'] ;
-// const corsOptions = {
-// 	origin : function (origin:any, cb:any){
-// 		if(whitelist.indexOf(origin) !== -1){
-// 			console.log(`cors: ${origin} >> pass`);
-// 			cb(null, true);
-// 		}else{
-// 			console.log(`cors: ${origin} >> false`);
-// 			cb(new Error("not allow origin Error"))
-// 		}
-// 	},
-// 	credential: true
-// }
-//cors(corsOptions)
 
 /*
-* Contact 연동
+* Contact UID Check Logic
 */
 // Contact UID 발급 프로세스 오후 3시, 3시 30분
 const rule = new schedule.RecurrenceRule();
@@ -49,18 +34,20 @@ if(process.env.INSTANCE_ID === '2'){
 
 // Contact Data => 통합 DB 전송 오후 4시
 if(process.env.INSTANCE_ID === '2'){
-    schedule.scheduleJob('0 50 15 * * *', async () => {
+    schedule.scheduleJob('0 16 * * *', async () => {
         try {
+            //로그 path Setting
             logger.settings.filepath = `./LGE_logs/contact/send/${utils.getToday()}_jet-logger.log`;
 
-            await ContactController.Send_Contact(); 
+            ContactController.Send_Contact; 
 
         } catch (error) {
             logger.err('ContactController.Send_Contact schedule 중 오류:', error);
         }
     });
 }
-//router.post('/send', sendlogPath, ContactController.Send_Contact);
+//Contact Data => 통합 DB 전송 POST 요청 (수동 업로드 시, 편하게 사용하기 위하여)
+router.post('/send', clogPath ,ContactController.Send_Contact);
 
 // 랜딩페이지에서 사용하는 Company 조회
 router.post('/gpSinglexAPI', slogPath ,async (req: Request, res: Response):Promise<void> => {
@@ -68,29 +55,27 @@ router.post('/gpSinglexAPI', slogPath ,async (req: Request, res: Response):Promi
         let result = await api_searchCompany(req.body.type, req.body.url ,req.body.value);
         res.json(result);
     }catch(error){
-        logger.err('### gp error /gpSinglexAPI ###');
+        logger.err('### Error /gpSinglexAPI ###');
         logger.err(error);
-        res.json(error);
+        res.json(error.message);
     }
     
 });
 
 //router.post('/test' ,ContactController.test);
 
+
+
 /*
 * LOG PATH 설정
 */
-function logPath (req: Request, res: Response, next:NextFunction) {
-    logger.settings.filepath = `./LGE_logs/contact/${utils.getToday()}_jet-logger.log`;
-    next();
-}
-function sendlogPath (req: Request, res: Response, next:NextFunction) {
-    logger.settings.filepath = `./LGE_logs/contact/send/${utils.getToday()}_jet-logger.log`;
+function slogPath (req: Request, res: Response, next:NextFunction) {
+    logger.settings.filepath = `./LGE_logs/singlex/${utils.getToday()}_jet-logger.log`;
     next();
 }
 
-function slogPath (req: Request, res: Response, next:NextFunction) {
-    logger.settings.filepath = `./LGE_logs/singlex/${utils.getToday()}_jet-logger.log`;
+function clogPath (req: Request, res: Response, next:NextFunction) {
+    logger.settings.filepath = `./LGE_logs/contact/send/${utils.getToday()}_jet-logger.log`;
     next();
 }
 

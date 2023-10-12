@@ -43,8 +43,8 @@ export function getTodayTime(){
     let day = ("0" + date.getDate()).slice(-2);
     let hours = date.getHours();
   
-    let beginDateTime =  `${year}-${month}-${day} ${hours-1}:00 `
-    let endDateTime =  `${year}-${month}-${day} ${hours}:00 `
+    let beginDateTime =  `${year}-${month}-${day} ${hours-1}:00`
+    let endDateTime =  `${year}-${month}-${day} ${hours}:00`
     return {
         beginDateTime,
         endDateTime
