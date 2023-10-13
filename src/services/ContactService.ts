@@ -322,11 +322,11 @@ async function Update_ContactUID (sourceSystemKey1:string, Email:string ,Contact
             }
 
         // 1. Contact UID 필드 업데이트 
-        await lge_eloqua.contacts.update(contactId, updateContactData);
+        lge_eloqua.contacts.update(contactId, updateContactData);
         //console.log(contactFieldUpdate);
         
         // 2. Custom Object Data 필드 업데이트
-        await lge_eloqua.contacts.cod_Update(408, CustomObjectId, updateCOData);
+        lge_eloqua.contacts.cod_Update(408, CustomObjectId, updateCOData);
         //console.log(CustomObjectFieldUpdate);
 
         logger.info(`status = success Email = ${Email}, ContactUID = ${ContactUID}, updateResultMessage? = ${updateResultMessage} `)

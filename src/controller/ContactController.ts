@@ -134,7 +134,7 @@ const Send_Contact = async (req:Request, res:Response):Promise<void> => {
                 let batchData = customOjbectData.slice(i, i + batchSize);
                 let RESULT = await ContactService.Contact_Send(batchData);
                 logger.warn(RESULT);
-                await ContactService.Update_EloquaData(RESULT);
+                ContactService.Update_EloquaData(RESULT);
             }
 
             logger.info(`현재 page = ${page} Eloqua Field Update Logic END, 다음 page 실행`);
