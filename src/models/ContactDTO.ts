@@ -242,7 +242,7 @@ export class ContactForm {
           //KR_Privacy Policy_Transfer PI Aborad
           result = this.mapAgressValue(this.getFieldValueById(contact, "100317"));
         }
-        if(value = "TTC_AgreementDate"){
+        if(value == "TTC_AgreementDate"){
           // 필드가 존재하지 않음
           result = "";
         }
