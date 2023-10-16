@@ -132,8 +132,8 @@ export const AccountProvideAPI = async (data: IAccountReq):Promise<any> => {
           }
     })
     .then(function (response):AxiosResponse<any> {
-        //logger.info(response.data);
         const R = response.data;
+        logger.warn(response.data.message);
         if(R.hasOwnProperty('result') == false && R.nowPage == null) throw new Error (R.message);
         return R
     })
@@ -172,7 +172,7 @@ export const AccountRegisterAPI = async (data:IreqAccountRegister):Promise<any> 
         return response.data;
     })
     .catch (function (error):AxiosError<any> {                        
-        console.log({
+        logger.err({
             "error" : "UID 발급 API 오류가 발생하였습니다.",
             "response_msg" : [error.response ? JSON.stringify(error.response.data) : error]
         });
@@ -246,7 +246,7 @@ export const ContactRegisterAPI = async (data:any):Promise<any> => {
         return response.data;
     })
     .catch (function (error):AxiosError<any> {                        
-        console.log({
+        logger.err({
             "error" : "ContactRegisterAPI 오류가 발생하였습니다.",
             "response_msg" : [error.response ? JSON.stringify(error.response.data) : error]
         });
@@ -278,7 +278,7 @@ export const ContactUpdateAPI = async (data:any):Promise<any> => {
         return response.data;
     })
     .catch (function (error):AxiosError<any> {                        
-        console.log({
+        logger.err({
             "error" : "ContactUpdateAPI 오류가 발생하였습니다.",
             "response_msg" : [error.response ? JSON.stringify(error.response.data) : error]
         });

@@ -19,7 +19,8 @@ if(process.env.INSTANCE_ID === '1'){
     });
 }
 
-//router.post('/update', logPath ,AccountController.DB_to_Account);
+router.post('/update', AccountController.DB_to_Account);
+
 router.get('/test', AccountController.test);
 
 export default router;

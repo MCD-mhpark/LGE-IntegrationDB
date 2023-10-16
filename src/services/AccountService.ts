@@ -34,14 +34,17 @@ const integrationAccount = async (IntgrationDB_AccountData: IAccountRes): Promis
             }
         });
 
-        return resData
+        // resData 성공 시,
+        // status:'fulfilled'
+        // value:{type: 'FormData', id: '13536981', fieldValues: Array(22), submittedAt: '1697418079'}
+ 
 
     } catch (error) {
         logger.err({
             "error" : "integrationAccount service Error",
-            "response_msg" : error
+            "response_msg" : error.message
         });
-        return error;
+        throw error.stack
     }
 };
 
