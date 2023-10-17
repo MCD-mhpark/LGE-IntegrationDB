@@ -34,22 +34,22 @@ export interface Account {
     TaxId: string | null; // TaxID
     DUNSNo: string | null; // Duns Number
     CompName: string | null; // Account 이름
-    CompNameEng: string | null; // Account 영문이름
-    CorpNo: string | null; // 법인등록번호
-    Zip: string | null; // 우편번호
-    DetailAddr: string | null // 상세주소
-    CEOName: string | null // 대표자명
-    CEONameEng: string | null // 대표자명(영문)
-    BizCondName: string | null // 업종
-    BizTypeName: string | null // 사업유형
-    CompScale: string | null  // 중소기업
-    CompTypeEn: string | null // 회사유형(영어)
-    CompType: string | null // 회사유형
-    CreditDiv: string | null //기업 신용등급 관련
-    CreditRank: string | null //기업 신용등급 관련
-    CriCompScale: string | null // 기업규모
-    CriGrade: string | null // 기업등급
-    EmpCount: number | null // 직원수
+    CompNameEng?: string | null; // Account 영문이름
+    CorpNo?: string | null; // 법인등록번호
+    Zip?: string | null; // 우편번호
+    DetailAddr?: string | null // 상세주소
+    CEOName?: string | null // 대표자명
+    CEONameEng?: string | null // 대표자명(영문)
+    BizCondName?: string | null // 업종
+    BizTypeName?: string | null // 사업유형
+    CompScale?: string | null  // 중소기업
+    CompTypeEn?: string | null // 회사유형(영어)
+    CompType?: string | null // 회사유형
+    CreditDiv?: string | null //기업 신용등급 관련
+    CreditRank?: string | null //기업 신용등급 관련
+    CriCompScale?: string | null // 기업규모
+    CriGrade?: string | null // 기업등급
+    EmpCount?: number | null // 직원수
 }
 
 

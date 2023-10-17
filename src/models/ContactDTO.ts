@@ -10,6 +10,8 @@ export interface IReqEloqua {
 export interface IUpdateContact {
   company: string | undefined;
   uID: string | undefined;
+  regName?: string,
+  taxId?: string
 }
 
 export class updateContact {
@@ -33,31 +35,31 @@ export class updateContact {
 //   value?: any;
 // }
 
-// export interface IContact {
-//   type: string;
-//   currentStatus: string;
-//   id: string;
-//   createdAt: string;
-//   depth: string;
-//   name: string;
-//   updatedAt: string;
-//   accountName: string;
-//   address1: string;
-//   address2: string;
-//   businessPhone: string;
-//   city: string;
-//   country: string;
-//   emailAddress: string;
-//   emailFormatPreference: string;
-//   fieldValues: FieldValue[];
-//   firstName: string;
-//   isBounceback: string;
-//   isSubscribed: string;
-//   lastName: string;
-//   mobilePhone: string;
-//   postalCode: string;
-//   subscriptionDate: string;
-// }
+export interface IContact {
+  type: string;
+  currentStatus: string;
+  id: string;
+  createdAt: string;
+  depth: string;
+  name: string;
+  updatedAt: string;
+  accountName: string;
+  address1: string;
+  address2: string;
+  businessPhone: string;
+  city: string;
+  country: string;
+  emailAddress: string;
+  emailFormatPreference: string;
+  fieldValues: FieldValue[];
+  firstName: string;
+  isBounceback: string;
+  isSubscribed: string;
+  lastName: string;
+  mobilePhone: string;
+  postalCode: string;
+  subscriptionDate: string;
+}
 
 class FieldValue {
   constructor(public type: string, public id: string, public value?: any) {}

@@ -46,7 +46,7 @@ const corsOptions = {
       cb(null, true);
     }else{
       logger.info(`cors: ${origin} >> false`);
-      cb(new Error("not allow origin Error"))
+      //cb(new Error("not allow origin Error"))
     }
   },
   credential: true
