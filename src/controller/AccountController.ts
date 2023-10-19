@@ -18,7 +18,7 @@ const DB_to_Account = async(): Promise<void> =>{
             beginDateTime: utils.getTodayTime().beginDateTime,
             endDateTime: utils.getTodayTime().endDateTime,
         };
-        
+        logger.info(AccountReq);
         //1. Account 생성 및 변경 목록 조회, 최초 1회 통신으로 totalpage Value 값 가져옴
         const accountData = await LgApi.AccountProvideAPI(AccountReq);
 
