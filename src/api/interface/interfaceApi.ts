@@ -251,8 +251,7 @@ export interface IAccountReq {
     SourceSystemDivision: string;
     perCount: number;
     nowPage: number;
-    beginDateTime: string;
-    endDateTime: string;
+    baseDate: string;
 }
 
 export interface IAccountRes {

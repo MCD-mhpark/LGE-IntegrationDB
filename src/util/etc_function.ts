@@ -35,6 +35,17 @@ export function getToday(){
     return year + "-" + month + "-" + day;
 }
 
+export function getYesterday(){
+    let date = new Date();
+    date.setDate(date.getDate() - 1);
+    
+    let year = date.getFullYear();
+    let month = ("0" + (1 + date.getMonth())).slice(-2);
+    let day = ("0" + date.getDate()).slice(-2);
+  
+    return year + "-" + month + "-" + day;
+}
+
 //YYYY-MM-DD HH:00
 export function getTodayTime(){
     let date = new Date();

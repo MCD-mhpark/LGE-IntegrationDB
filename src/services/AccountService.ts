@@ -9,30 +9,41 @@ const integrationAccount = async (IntgrationDB_AccountData: IAccountRes): Promis
     try {
 
         let resultarr = [];
+
+        //1000건씩 처리시 Eloqua RestApi 과부화 이슈
+        const batchSize = 200;
+
         const AccountArr: Account[] = IntgrationDB_AccountData.result.Account;
         const formId = 8930;
 
-        //result Data .length Insert logic
-        for (const account of AccountArr){
-
-            //Form 형식에 맞게 Data Convert
-            let convertFormData = new AccountForm(account);
+        for(let i = 0; i < AccountArr.length; i += batchSize){
+            logger.info(`${i}~${i+batchSize} START`); 
             
-            //Eloqua Form Insert 비동기 처리 
-            const Iresult = lge_eloqua.contacts.form_Create(formId, convertFormData);
-            resultarr.push(Iresult);
+            let batchData = AccountArr.slice(i, i + batchSize);
 
-        }
-        
-        //resultarr에 담긴 Promise를 병렬 처리
-        const resData = await Promise.allSettled(resultarr);
-        
-         // 로그에 reject 된 Promise 결과 기록
-        resData.forEach((result, index) => {
-            if (result.status == 'rejected') {
-                logger.err(`Promise_allSettled at ${index} rejected with reason: ${JSON.stringify(result, null, 2)}`);
+            //result Data .length Insert logic
+            for (const account of batchData){
+
+                //Form 형식에 맞게 Data Convert
+                let convertFormData = new AccountForm(account);
+                
+                //Eloqua Form Insert 비동기 처리 
+                const Iresult = lge_eloqua.contacts.form_Create(formId, convertFormData);
+                resultarr.push(Iresult);
             }
-        });
+            
+            //resultarr에 담긴 Promise를 병렬 처리
+            const resData = await Promise.allSettled(resultarr);
+            
+            // 로그에 reject 된 Promise 결과 기록
+            resData.forEach((result, index) => {
+                if (result.status == 'rejected') {
+                    logger.err(`Promise_allSettled at ${index} rejected with reason: ${JSON.stringify(result, null, 2)}`);
+                }
+            });
+
+            logger.info(`${i}~${i+batchSize} END`);
+        }
 
         // resData 성공 시,
         // status:'fulfilled'

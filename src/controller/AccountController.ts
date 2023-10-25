@@ -8,35 +8,36 @@ import logger from '../public/modules/jet-logger/lib/index';
 const DB_to_Account = async(): Promise<void> =>{
 
     try {
-        logger.info('### 통합 DB Account Data INSERT ###')
+        logger.info('### 통합 DB Account Data INSERT ###');
 
+        let nextSearch: boolean = true;
         const AccountReq: IAccountReq = {
             LGCompanyDivision: "EKHQ",
             SourceSystemDivision: "Eloqua",
             perCount: 1000,
             nowPage: 1,
-            beginDateTime: utils.getTodayTime().beginDateTime,
-            endDateTime: utils.getTodayTime().endDateTime,
+            baseDate: utils.getYesterday()
         };
-        logger.info(AccountReq);
-        //1. Account 생성 및 변경 목록 조회, 최초 1회 통신으로 totalpage Value 값 가져옴
-        const accountData = await LgApi.AccountProvideAPI(AccountReq);
 
-        logger.info(`Account 현재 시간 생성 및 변경 목록 Count
-        AccountController>> account totalPage: ${accountData.totalPage}, account totalCount: ${accountData.totalCount}`);
+        logger.info(AccountReq);
         
         console.time('Account DB INSERT Time');
         
         //2. totalPage 수 만큼 for문 처리, 이후 data insert는 Service로직 태움
-        for( let i = 1; i <= accountData.totalPage; i++ ){
-            AccountReq.nowPage = i;
-
-            const IntgrationDB_AccountData = await LgApi.AccountProvideAPI(AccountReq);
+        while(nextSearch){
+            const AccountData = await LgApi.AccountProvideAPI(AccountReq);
+            if(AccountData.result.Account == undefined) {
+                logger.info(`최종>> account totalPage: ${AccountData.totalPage}, account totalCount: ${AccountData.totalCount}`);
+                nextSearch = false;
+                break;
+            }
             logger.info(`integrationAccount NOWPAGE INDEX: ${AccountReq.nowPage} START!`); 
             
-            await AccountService.integrationAccount(IntgrationDB_AccountData);
+            await AccountService.integrationAccount(AccountData);
 
-            logger.info(`integrationAccount NOWPAGE INDEX: ${AccountReq.nowPage} END!`); 
+            logger.info(`integrationAccount NOWPAGE INDEX: ${AccountReq.nowPage} END!`);
+
+            ++AccountReq.nowPage;
         }
 
         console.timeEnd('Account DB INSERT Time');
