@@ -7,7 +7,7 @@ const router = express.Router();
 
 //1시간 마다 Account 정보 magration
 if(process.env.INSTANCE_ID === '1'){
-    schedule.scheduleJob('0 * * * *', async () => {
+    schedule.scheduleJob('0 13 * * *', async () => {
         try {
             logger.settings.filepath = `./LGE_logs/account/${utils.getToday()}_jet-logger.log`
     
