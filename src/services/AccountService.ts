@@ -17,7 +17,6 @@ const integrationAccount = async (IntgrationDB_AccountData: IAccountRes): Promis
         const formId = 8930;
 
         for(let i = 0; i < AccountArr.length; i += batchSize){
-            logger.info(`${i}~${i+batchSize} START`); 
             
             let batchData = AccountArr.slice(i, i + batchSize);
 
@@ -38,11 +37,10 @@ const integrationAccount = async (IntgrationDB_AccountData: IAccountRes): Promis
             // 로그에 reject 된 Promise 결과 기록
             resData.forEach((result, index) => {
                 if (result.status == 'rejected') {
+                    logger.err(`${i}~${i+batchSize} err`); 
                     logger.err(`Promise_allSettled at ${index} rejected with reason: ${JSON.stringify(result, null, 2)}`);
                 }
             });
-
-            logger.info(`${i}~${i+batchSize} END`);
         }
 
         // resData 성공 시,

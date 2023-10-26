@@ -8,6 +8,7 @@ export interface IReqEloqua {
   }
 
 export interface IUpdateContact {
+  email: string | undefined;
   company: string | undefined;
   uID: string | undefined;
   regName?: string,

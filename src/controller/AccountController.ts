@@ -11,6 +11,8 @@ const DB_to_Account = async(): Promise<void> =>{
         logger.info('### 통합 DB Account Data INSERT ###');
 
         let nextSearch: boolean = true;
+        let count = 0;
+
         const AccountReq: IAccountReq = {
             LGCompanyDivision: "EKHQ",
             SourceSystemDivision: "Eloqua",
@@ -27,12 +29,14 @@ const DB_to_Account = async(): Promise<void> =>{
         while(nextSearch){
             const AccountData = await LgApi.AccountProvideAPI(AccountReq);
             if(AccountData.result.Account == undefined) {
-                logger.info(`최종>> account totalPage: ${AccountData.totalPage}, account totalCount: ${AccountData.totalCount}`);
+                logger.info(`종료 >> account totalPage: ${AccountData.totalPage}, account totalCount: ${AccountData.totalCount}`);
                 nextSearch = false;
                 break;
             }
-            logger.info(`integrationAccount NOWPAGE INDEX: ${AccountReq.nowPage} START!`); 
-            
+            count += AccountData.resultCount;
+            logger.info(`${AccountReq.nowPage} >> account totalPage: ${AccountData.totalPage}, account totalCount: ${AccountData.totalCount}
+            integrationAccount NOWPAGE INDEX: ${AccountReq.nowPage}, ~${count}까지 Update START!`);
+
             await AccountService.integrationAccount(AccountData);
 
             logger.info(`integrationAccount NOWPAGE INDEX: ${AccountReq.nowPage} END!`);

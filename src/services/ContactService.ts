@@ -1,28 +1,29 @@
 import { lge_eloqua, lgeSdk_eloqua } from '@src/routes/Auth';
-import { Contact, IReqEloqua, ContactForm, IUpdateContact, SendContactData, CustomObjectData } from "@src/models/ContactDTO";
+import { Contact, IReqEloqua, ContactForm, IUpdateContact, IContact, SendContactData, CustomObjectData } from "@src/models/ContactDTO";
+import { AccountForm } from "@src/models/AccountDTD"
 import * as LgApi from "@src/api/Lg_Api"
 import {IreqAccountRegister, ICompanyData, IresAccountRegister} from "@src/api/interface/interfaceApi"
 import * as utils from "@src/util/etc_function";
 import logger from '../public/modules/jet-logger/lib/index';
 
 //Contact 조건에 맞게 Search List
-const Get_ContactList = async(code:string, pageindex:number, time: string): Promise<any> => {
+const Get_ContactList = async(code:string, time: string, pageindex?:number): Promise<any> => {
     
-    let queryString: IReqEloqua = { search: '', page: undefined , depth:''};
-
+    let queryString: IReqEloqua = { search: '', depth:''};
     let timeQuery: string = '';
 
     //처음 조회는 totalCount를 가져오기 위해 depth minimal로 하여 Search 속도 향상
     if(pageindex == 0){
         queryString.page = 1; queryString.depth = "minimal";
     }else{
-        queryString.page = pageindex; queryString.depth = "complete"
+        queryString.depth = "complete"
     }
 
     if(time == "1차시기"){timeQuery = `C_DateModified>='${utils.yesterday_getDateTime()} 00:00:00'C_DateModified<'${utils.yesterday_getDateTime()} 15:00:00'`};
     if(time == "2차시기"){timeQuery = `C_DateModified>'${utils.yesterday_getDateTime()} 16:00:00'C_DateModified<='${utils.yesterday_getDateTime()} 23:59:59'`};
     
-    if(time == "수동업로드"){timeQuery = `C_DateModified>'2023-10-06 16:00:00'C_DateModified<='2023-10-06 23:59:59'`};
+    //if(time == "수동업로드"){timeQuery = `C_DateModified>'2023-10-06 16:00:00'C_DateModified<='2023-10-06 23:59:59'`};
+    //if(time == "수동업로드"){timeQuery = `C_Common_Field__41="통합DBTEST"`};
 
     if(code == "KR"){
         //C_Company_Country_Code1 = South Korea && 사업자 등록번호
@@ -33,9 +34,11 @@ const Get_ContactList = async(code:string, pageindex:number, time: string): Prom
     }else if(code == "Global"){
         //C_Country != NULL && South Korea && TaxID != NULL
         let globalQuery = `C_Company_Country_Code1!="KR"C_Company_Country_Code1!=""C_Tax_ID1!=""C_LastName!=""C_Common_Field__51!="통합DB제외"`
-        queryString.search = timeQuery + globalQuery
+        //let ktglobalQuery = `C_Company_Country_Code1!="KR"C_Company_Country_Code1!=""C_Tax_ID1!=""C_LastName!=""`
+        queryString.search = timeQuery + globalQuery;
     }else if(code == "Pending"){
-        queryString.search = `C_DateModified>='${utils.yesterday_getDateTime()} 00:00:00'C_DateModified<='${utils.yesterday_getDateTime()} 23:59:59'C_Account_UID1="pending*"`
+        let pendingQuery = `C_Account_UID1="pending*`
+        queryString.search = timeQuery + pendingQuery;
     }
     
     //console.log(queryString);
@@ -50,11 +53,22 @@ const Get_ContactList = async(code:string, pageindex:number, time: string): Prom
 }
 
 //UID 발급 프로세스
-const Check_UID = async(p_CountryCode:string, p_uid :string, p_CompanyName?:string, p_RegNum?: string, p_TaxId? :string): Promise<any> => {
-    console.log("p_CountryCode", p_CountryCode);
+const Check_UID = async(data:IContact): Promise<any> => {
+
     
-    let queryString: IReqEloqua = { search: '', depth:'complete' };
-    let uResult: { uID: string, company: string }  = { uID: '', company: '' };
+    const email = data.emailAddress;
+    const p_uid = utils.matchFieldValues(data, '100423') ? utils.matchFieldValues(data, '100423') : ""; 
+    const p_CountryCode = utils.matchFieldValues(data, '100458'); //Company Country Code
+    const p_CompanyName = data.hasOwnProperty('accountName') ? data.accountName : undefined;
+    const p_RegNum = utils.matchFieldValues(data, '100398');
+    const p_TaxId = utils.matchFieldValues(data, '100437');
+    
+    //logger.info(`email: ${email}, companyCode: ${p_CountryCode}, uid: ${p_uid}, CompanyName: ${p_CompanyName}, regNum: ${p_RegNum}, taxId: ${p_TaxId}`);
+    
+    
+    // Check_UID의 Return 변수.
+    let uResult: {email:string, uID: string, company: string, regName?:string, taxId?:string }  = { email, uID: p_uid, company: '', regName: p_RegNum, taxId:p_TaxId };
+    // UID 발급을 위한 변수.
     let reqUID: IreqAccountRegister = {
         Account: [
             {
@@ -68,34 +82,37 @@ const Check_UID = async(p_CountryCode:string, p_uid :string, p_CompanyName?:stri
             }
         ]
     };
+    // 발급 신청 후 SingleResultAPI UID 조회를 위한 변수. 
     let issueUID: ICompanyData = {
         countryCode: p_CountryCode,
         bizRegNo: p_RegNum ? p_RegNum.replace(/[\s-]/g, "") : "",
         taxId: p_TaxId
     }
-
-    if(p_CountryCode == 'KR'){
-        queryString.search =  `M_Company_Country_Code1='${p_CountryCode}'M_Business_Registration_Number1='${p_RegNum}'`
-    }else{
-        if(p_TaxId){
-            queryString.search =  `M_Company_Country_Code1='${p_CountryCode}'M_Tax_ID1='${p_TaxId}'`
-        }        
-    }
-
+        
     try {
-        console.log(queryString);
-        // 1. UID 존재 여부 확인
+        
+        let queryString: IReqEloqua = { search: '', depth:'complete' };
+        if(p_CountryCode == 'KR'){
+            queryString.search =  `M_Company_Country_Code1='${p_CountryCode}'M_Business_Registration_Number1='${p_RegNum}'`
+        }else{
+            if(p_TaxId){
+                queryString.search =  `M_Company_Country_Code1='${p_CountryCode}'M_Tax_ID1='${p_TaxId}'`
+            }        
+        }
+
+        //1. UID 존재 여부 확인
         const eloquaAccount = await lge_eloqua.accounts.getAll(queryString);
 
+        //2. 있을 경우 Eloqua Account Table UID Return.
         if(eloquaAccount.elements.length !== 0){
-            logger.info(`### Eloqua UID 존재 ${p_CountryCode}, ${p_CompanyName}, ${p_RegNum}, ${p_TaxId} ###`);
-
+            logger.info(`### email: ${email} Eloqua UID 존재=> ${p_CountryCode}, ${p_CompanyName}, ${p_RegNum}, ${p_TaxId} ###`);
             uResult.uID = utils.matchFieldValues(eloquaAccount.elements[0], '100424'); //100424: Account Fields ID
             uResult.company =  eloquaAccount.elements[0].name;
             
         // 2. 없을 경우 발급요청(companyName != null) 후 5초 대기 (단, Account UID가 pending* 인 것은 요청 하지 않음)
         }else if (eloquaAccount.elements.length == 0 && p_CompanyName !== undefined && !p_uid.startsWith('pending')){
-            logger.info(`### UID 발급 요청 ${p_CountryCode}, ${p_CompanyName}, ${p_RegNum}, ${p_TaxId} ###`);
+
+            logger.info(`### email: ${email} UID 발급 요청=> ${p_CountryCode}, ${p_CompanyName}, ${p_RegNum}, ${p_TaxId} ###`);
             //console.log(reqUID);
 
             //2-1. UID 발급 API 
@@ -107,31 +124,43 @@ const Check_UID = async(p_CountryCode:string, p_uid :string, p_CompanyName?:stri
                 // 2-1-2. 발급 받은 UID 및 CompanyName 확인
                 const issueUIDResult = await LgApi.AccountSingleResultAPI(issueUID);
 
-                //3. 발급이 된 UID Return
+                //2-2. 발급이 된 UID Return
                 if(issueUIDResult.Account.length !== 0){
-                    //console.log('issueUIDResult', issueUIDResult);                    
+                    //logger.info(`### issueUIDResult 발급결과 => ${JSON.stringify(issueUIDResult)} ###`);                    
                     uResult.uID = issueUIDResult.Account[0].UID;
                     uResult.company = issueUIDResult.Account[0].Name;
 
                     /*
-                    * 추 후 Account Insert 로직이 필요함 중복 요청을 안하기 위해서 
+                    * Account Insert 로직이 필요함 중복 요청을 안하기 위해서 
                     */
+                    const AccountFormId = 8930;
+                    let account = {
+                        UID: uResult.uID,
+                        CountryCode: p_CountryCode,
+                        BizNo: p_RegNum,
+                        TaxId: p_TaxId,
+                        CompName: uResult.company,
+                        DUNSNo: ""
+                    }
+                    let convertFormData = new AccountForm(account);
+
+                    await lge_eloqua.contacts.form_Create(AccountFormId, convertFormData);
 
                 }else {
-                //3-1. 발급 요청한 Company가 조회 되지 않을 경우
-                    logger.info(`
+
+                    //3-1. 발급 요청한 Company가 조회 되지 않을 경우
+                    logger.warn(`
                     ***CHECKPOINT!***
                     pending =>  ${p_CountryCode}, ${p_CompanyName}, ${p_RegNum}, ${p_TaxId} 
                     pending AccountRegister result => ${JSON.stringify(value.result)} 
                     `);
-
                     /*
                     * 추 후 발급 결과 조회 API 로그가 필요함 
                     */
-
                     uResult.company = p_CompanyName;
                     uResult.uID = `pending(${JSON.parse(value.result).Account[0].VID})`;
                 }
+                
         
             }).catch(error => {
                 throw error;
@@ -143,7 +172,8 @@ const Check_UID = async(p_CountryCode:string, p_uid :string, p_CompanyName?:stri
 
     } catch (error) {
         logger.err(`### Check_UID logic Error : ${p_CountryCode}, ${p_CompanyName}, ${p_RegNum}, ${p_TaxId} ###`);
-        logger.err(error);
+        logger.err(error.message);
+        logger.err(error.stack);
         return `Check_UID logic Error`;
     }
 }
@@ -156,11 +186,11 @@ const Insert_Form = async (contact:Contact, updateContact:IUpdateContact): Promi
 
     return await lge_eloqua.contacts.form_Create(id, convertFormData).then((result: any) => {
         //console.log(result);
-        return `${contact.emailAddress}: form insert success`
+        return `success`
     }).catch((error: any) => {
         logger.err(`### ${contact.emailAddress}: Insert_Form Error`);
         logger.err(error);
-        return `${contact.emailAddress}: form insert fail`
+        return `fail`
     });
     
 }
@@ -173,13 +203,8 @@ const Get_COD = async (pageindex: number, search?: string) => {
     let queryString: IReqEloqua = { search: '', page: pageindex ,depth:'complete' };
 
     // ____11 : 전송완료여부 필드
-    if(search !== undefined){
-        queryString.search = search;
-    }else{
-        queryString.search = `updatedAt>='${utils.getToday()} 00:00:00'updatedAt<='${utils.getToday()} 23:59:59'____11=""`
-    }
-    //queryString.search = `____11=""`
-    logger.info(queryString)
+    queryString.search = `createdAt>='${utils.getToday()} 00:00:00'createdAt<='${utils.getToday()} 23:59:59'____11=""`
+    //queryString.search = '____11=""'
 
     return await lge_eloqua.contacts.cod_Get(id, queryString).then((result: any) => {
         return result
@@ -201,6 +226,7 @@ const Contact_Send =  async (customOjbectData: any) => {
         
         // 1. contact 등록 API에 맞게 Data 형식 covert
         for(const data of customOjbectData){
+
             let convertdata = new SendContactData(data);
 
             if(utils.matchFieldValues(data, "3280") !== ""){
@@ -217,12 +243,11 @@ const Contact_Send =  async (customOjbectData: any) => {
 
         // 2. 통합 DB 컨택 등록 요청 Process
         if (sendCreateData.Contact.length !== 0) {
-            logger.warn(sendCreateData);
             let createApiResult = await LgApi.ContactRegisterAPI(sendCreateData);
             //console.log('createApiResult', createApiResult);
             if(createApiResult.result == "ERROR"){
-                logger.warn(`################ CREATE INTERGRATION DB ERROR ################`);
-                logger.warn(createApiResult); logger.warn(sendCreateData);
+                logger.err(`################ INSERT INTERGRATION DB ERROR ################`);
+                logger.err(createApiResult); logger.err(sendCreateData);
                 returnResult.sendCreateData = "fail"
             }else{            
                 returnResult.sendCreateData = createApiResult.result;
@@ -241,13 +266,13 @@ const Contact_Send =  async (customOjbectData: any) => {
             }
         } 
 
-        //등록요청하거나 수정요청 한 Contact 이 없을경우 {"sendCreateData": {} , "sendUpdateData": {}}
-        console.log("returnResult", returnResult);
+        //등록요청하거나 수정요청 한 Contact 이 없을경우 { "sendCreateData": {} , "sendUpdateData": {} }
+        //logger.info(`returnResult: ${JSON.stringify(returnResult)}`);
         return returnResult
         
     } catch(error){
         logger.err('### Contact_Send Service ERROR ###');
-        logger.err(error);
+        logger.err(error.message); logger.err(error.stack);
         return error
     }
 }
@@ -259,10 +284,10 @@ const Update_EloquaData = async (RESULT:any) => {
 
     try{
         //sendCreateData 결과 처리
-        if(Object.entries(RESULT.sendCreateData).length !== 0 && RESULT.sendCreateDat !== 'fail'){
+        if(Object.entries(RESULT.sendCreateData).length !== 0 && RESULT.sendCreateData !== 'fail'){
             let createData = JSON.parse(RESULT.sendCreateData);
             for(const data of createData.Contact){
-               Update_ContactUID(data.SourceSystemKey1, data.Email, data.ContactUID);
+               UpdateData(data.SourceSystemKey1, data.Email, data.ContactUID);
             }
         }
     
@@ -271,9 +296,9 @@ const Update_EloquaData = async (RESULT:any) => {
             let updateData = JSON.parse(RESULT.sendUpdateData);
             for(const data of updateData.Contact){
                 if(data.updateResult == 'SUCCESS'){
-                    Update_ContactUID(data.SourceSystemKey1, data.Email, data.UID);
+                    UpdateData(data.SourceSystemKey1, data.Email, data.UID);
                 }else{
-                    Update_ContactUID(data.SourceSystemKey1, data.Email, data.UID, data.updateResultMessage);
+                    UpdateData(data.SourceSystemKey1, data.Email, data.UID, data.updateResultMessage);
                 }
             }  
         }
@@ -281,12 +306,12 @@ const Update_EloquaData = async (RESULT:any) => {
     }
     catch(error){
         logger.err('### Update_EloquaData Service ERROR ###');
-        logger.err(error.message);
-        logger.err(`### status = error ${RESULT}`);
+        logger.err(error.message); logger.err(error.stack);
+        logger.err(`### status = error ${JSON.stringify(RESULT)}`);
     }
 };
 
-async function Update_ContactUID (sourceSystemKey1:string, Email:string ,ContactUID:string, updateResultMessage? : string) {
+async function UpdateData (sourceSystemKey1:string, Email:string ,ContactUID:string, updateResultMessage? : string) {
 
     try{
         const [contactId, CustomObjectId] = sourceSystemKey1.split('-');
@@ -321,15 +346,20 @@ async function Update_ContactUID (sourceSystemKey1:string, Email:string ,Contact
                     ]
             }
 
-        // 1. Contact UID 필드 업데이트 
+        // Contact UID 필드 업데이트 
         lge_eloqua.contacts.update(contactId, updateContactData);
         //console.log(contactFieldUpdate);
         
-        // 2. Custom Object Data 필드 업데이트
+        // Custom Object Data 필드 업데이트
         lge_eloqua.contacts.cod_Update(408, CustomObjectId, updateCOData);
         //console.log(CustomObjectFieldUpdate);
 
-        logger.info(`status = success Email = ${Email}, ContactUID = ${ContactUID}, updateResultMessage? = ${updateResultMessage} `)
+        if(updateResultMessage){
+            //updateResultMessage => 정상적으로 update가 되지 않을때 API의 Return 메세지 내용.
+            logger.warn(`status = Data Update success Email = ${Email}, ContactUID = ${ContactUID}, updateResultMessage? = ${updateResultMessage} `)
+        }else{
+            logger.info(`status = Data Update success Email = ${Email}, ContactUID = ${ContactUID}`)
+        }
 
     }catch(error){
         logger.err('### Update_ContactUID Function ERROR ###');

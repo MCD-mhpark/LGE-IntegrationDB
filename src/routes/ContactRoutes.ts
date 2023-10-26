@@ -34,12 +34,12 @@ if(process.env.INSTANCE_ID === '2'){
 
 // Contact Data => 통합 DB 전송 오후 4시
 if(process.env.INSTANCE_ID === '2'){
-    schedule.scheduleJob('0 16 * * *', async () => {
+    schedule.scheduleJob('0 0 16 * * *', async () => {
         try {
             //로그 path Setting
             logger.settings.filepath = `./LGE_logs/contact/send/${utils.getToday()}_jet-logger.log`;
 
-            ContactController.Send_Contact; 
+            ContactController.Send_Contact(); 
 
         } catch (error) {
             logger.err('ContactController.Send_Contact schedule 중 오류:', error);
@@ -47,7 +47,7 @@ if(process.env.INSTANCE_ID === '2'){
     });
 }
 //Contact Data => 통합 DB 전송 POST 요청 (수동 업로드 시, 편하게 사용하기 위하여)
-router.post('/send', clogPath ,ContactController.Send_Contact);
+//router.post('/send', clogPath ,ContactController.Send_Contact);
 
 // 랜딩페이지에서 사용하는 Company 조회
 router.post('/gpSinglexAPI', slogPath ,async (req: Request, res: Response):Promise<void> => {
