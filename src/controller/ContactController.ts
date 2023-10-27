@@ -39,9 +39,9 @@ const UID_Process = async(time:string): Promise<void> => {
     
             console.time("Contact IntegrationDB");
             
-            //* 1000 건 이상 조회 될때 페이지 처리 해야함
-            for(let page:number = 1; page <= pageloopSize; page++){
-
+            //* 1000 건 이상 조회 될때 while 처리
+            let page:number = 1; 
+            while(page <= pageloopSize){
                 logger.warn(`### START Page: ${page} ###`);
 
                 //Push CompanyID
@@ -138,6 +138,8 @@ const UID_Process = async(time:string): Promise<void> => {
                 logger.warn(failRESULT);
 
                 logger.warn(`### END Page: ${page} ###`);
+                
+                page++;
             }
 
             console.timeEnd("Contact IntegrationDB");
