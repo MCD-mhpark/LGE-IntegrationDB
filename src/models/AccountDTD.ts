@@ -1,25 +1,3 @@
-export interface EloquaAccount {
-    type: string;
-    id: string;
-    createdAt: string;
-    depth: string;
-    description: string;
-    name: string;
-    updatedAt: string;
-    address1: string | undefined;
-    address2: string | undefined;
-    address3: string | undefined;
-    businessPhone: string | undefined;
-    city: string | undefined;
-    country: string | undefined;
-    postalCode: string | undefined;
-    province: string | undefined;
-    fieldValues: {
-        type: string;
-        id: string;
-        value?: string | undefined;
-    }[];
-}
 
 export interface SearchAccount {
     uID: string | undefined;
@@ -89,3 +67,26 @@ export class AccountForm {
         ];
     }
 }
+
+// export interface EloquaAccount {
+//     type: string;
+//     id: string;
+//     createdAt: string;
+//     depth: string;
+//     description: string;
+//     name: string;
+//     updatedAt: string;
+//     address1: string | undefined;
+//     address2: string | undefined;
+//     address3: string | undefined;
+//     businessPhone: string | undefined;
+//     city: string | undefined;
+//     country: string | undefined;
+//     postalCode: string | undefined;
+//     province: string | undefined;
+//     fieldValues: {
+//         type: string;
+//         id: string;
+//         value?: string | undefined;
+//     }[];
+// }

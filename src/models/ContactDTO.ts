@@ -25,17 +25,6 @@ export class updateContact {
   }
 }
 
-
-// export default {
-//   IReqContact
-// } as const;
-
-// interface FieldValue {
-//   type: string;
-//   id: string;
-//   value?: any;
-// }
-
 export interface IContact {
   type: string;
   currentStatus: string;
@@ -550,40 +539,3 @@ export class SendContactData {
   }
 
 }
-
-// interface SendContactData {
-//   LGCompanyDivision: string;
-//   SourceSystemDivision: string;
-//   SourceSystemKey1: string;
-//   Email: string;
-//   LastName: string;
-//   FirstName: string;
-//   PhoneNumber: string;
-//   MobilePhone: string;
-//   Zip: string;
-//   JobRole: string;
-//   JobTitle: string;
-//   Department: string;
-//   AccountName: string;
-//   AccountUID: string;
-//   CountryCode: string;
-//   Attribute1: string; //First Name and Last Name => 고객 Full Name
-//   Attribute2: string; //City => 고객이 거주하는 도시
-//   Attribute3: string; //Marketing Event=> 고객이 가장 최근에 진행한 Eloqua 캠페인 활동
-//   Attribute4: string; //Date Created => Eloqua 데이터 생성일자
-//   Attribute5: string; //Date Modified => Eloqua 데이터 수정일자
-//   PrivacyPolicyAgreement: string;
-//   ThirdPartyAgreement: string;
-//   TransferThirdCountriesAgreement: string;
-//   MarketingAgreement: string;
-//   SrcModifyDate: string;
-//   SrcModifierId: string;
-//   SrcModifierName: string;
-//   SrcCreationDate: string;
-//   SrcCreatorId: string;
-//   SrcCreatorName: string;
-// }
-
-// export interface SendContactDataWrapper {
-//   Contact: SendContactData[];
-// } 

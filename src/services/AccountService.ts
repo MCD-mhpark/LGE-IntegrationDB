@@ -1,6 +1,6 @@
 import { lge_eloqua, lgeSdk_eloqua } from '@src/routes/Auth';
 import { IAccountRes } from "@src/api/interface/interfaceApi"
-import { Account, AccountForm, EloquaAccount, SearchAccount} from "@src/models/AccountDTD"
+import { Account, AccountForm } from "@src/models/AccountDTD"
 import logger from '../public/modules/jet-logger/lib/index';
 
 
@@ -10,7 +10,7 @@ const integrationAccount = async (IntgrationDB_AccountData: IAccountRes): Promis
 
         let resultarr = [];
 
-        //1000건씩 처리시 Eloqua RestApi 과부화 이슈
+        //200건씩 처리
         const batchSize = 200;
 
         const AccountArr: Account[] = IntgrationDB_AccountData.result.Account;
@@ -18,7 +18,8 @@ const integrationAccount = async (IntgrationDB_AccountData: IAccountRes): Promis
 
         for(let i = 0; i < AccountArr.length; i += batchSize){
             
-            let batchData = AccountArr.slice(i, i + batchSize);
+            //1000건씩 처리되는 배열 200건씩 자르기
+            let batchData:Account[] = AccountArr.slice(i, i + batchSize);
 
             //result Data .length Insert logic
             for (const account of batchData){

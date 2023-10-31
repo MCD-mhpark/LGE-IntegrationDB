@@ -23,7 +23,7 @@ const DB_to_Account = async(): Promise<void> =>{
 
         logger.info(AccountReq);
         
-        console.time('Account DB INSERT Time');
+        //console.time('Account DB INSERT Time');
         
         //2. totalPage 수 만큼 for문 처리, 이후 data insert는 Service로직 태움
         while(nextSearch){
@@ -34,17 +34,17 @@ const DB_to_Account = async(): Promise<void> =>{
                 break;
             }
             count += AccountData.resultCount;
-            logger.info(`${AccountReq.nowPage} >> account totalPage: ${AccountData.totalPage}, account totalCount: ${AccountData.totalCount}
-            integrationAccount NOWPAGE INDEX: ${AccountReq.nowPage}, ~${count}까지 Update START!`);
+            
+            logger.info(`${AccountReq.nowPage} >> account totalPage: ${AccountData.totalPage}, account totalCount: ${AccountData.totalCount} integrationAccount NOWPAGE INDEX: ${AccountReq.nowPage}, ~${count}까지 Update START!`);
 
             await AccountService.integrationAccount(AccountData);
 
-            logger.info(`integrationAccount NOWPAGE INDEX: ${AccountReq.nowPage} END!`);
+            logger.info(`integrationAccount NOWPAGE INDEX: ${AccountReq.nowPage}의 resultCount:${AccountData.resultCount} END!`);
 
             ++AccountReq.nowPage;
         }
 
-        console.timeEnd('Account DB INSERT Time');
+        //console.timeEnd('Account DB INSERT Time');
         logger.info("### Account 데이터 생성 및 업데이트 SUCCESS ###"); 
 
         //res.json({ success: 'success'})
@@ -60,14 +60,14 @@ const DB_to_Account = async(): Promise<void> =>{
     }
 }
 
-const test = async(req: Request, res: Response): Promise<any> =>{
-    logger.info("account 성공성공성공성공성공");
-    return res.status(200).json({
-        message: "통신 성공"
-    })
-}
+// const test = async(req: Request, res: Response): Promise<any> =>{
+//     logger.info("account 성공성공성공성공성공");
+//     return res.status(200).json({
+//         message: "통신 성공"
+//     })
+// }
 
 export default {
     DB_to_Account,
-    test
+    //test
 }
