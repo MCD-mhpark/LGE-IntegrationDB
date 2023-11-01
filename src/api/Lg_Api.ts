@@ -79,11 +79,12 @@ export const AccountSingleResultAPI = async (data: ICompanyData):Promise<any> =>
 
     //2. Api 통신
     const Companydata: ICompanyData = {
+        LGCompanyDivision : data.LGCompanyDivision,
         countryCode : data.countryCode, 
         bizRegNo : data.bizRegNo, 
         dunsNo : data.dunsNo, 
         taxId : data.taxId
-    }
+    }    
         return await axios({
             method: "POST", 
             //url: "https://lgcorp--dev.sandbox.my.salesforce.com/services/apexrest/CD/AccountSingle/resultset", // 개발

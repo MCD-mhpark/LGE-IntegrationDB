@@ -7,6 +7,7 @@ export interface ILgToken {
 }
 
 export interface ICompanyData {
+    LGCompanyDivision: string
     countryCode: string, 
     bizRegNo? : string, 
     dunsNo? : string, 

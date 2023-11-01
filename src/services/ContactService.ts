@@ -11,6 +11,7 @@ const Get_ContactList = async(code:string, time: string, pageindex?:number): Pro
     
     let queryString: IReqEloqua = { search: '', depth:''};
     let timeQuery: string = '';
+    let ptimeQuery: string = '';
 
     //처음 조회는 totalCount를 가져오기 위해 depth minimal로 하여 Search 속도 향상
     if(pageindex == 0){
@@ -37,8 +38,10 @@ const Get_ContactList = async(code:string, time: string, pageindex?:number): Pro
         //let ktglobalQuery = `C_Company_Country_Code1!="KR"C_Company_Country_Code1!=""C_Tax_ID1!=""C_LastName!=""`
         queryString.search = timeQuery + globalQuery;
     }else if(code == "Pending"){
+        if(time == "1차시기"){ptimeQuery = `C_DateModified>='${utils.yesterday_getDateTime()} 00:00:00'C_DateModified<'${utils.yesterday_getDateTime()} 15:30:00'`};
+        if(time == "2차시기"){ptimeQuery = `C_DateModified>='${utils.yesterday_getDateTime()} 15:30:00'C_DateModified<='${utils.yesterday_getDateTime()} 23:59:59'`};
         let pendingQuery = `C_Account_UID1="pending*`
-        queryString.search = timeQuery + pendingQuery;
+        queryString.search = ptimeQuery + pendingQuery;
     }
     
     //console.log(queryString);
@@ -84,6 +87,7 @@ const Check_UID = async(data:IContact): Promise<any> => {
     };
     // 발급 신청 후 SingleResultAPI UID 조회를 위한 변수. 
     let issueUID: ICompanyData = {
+        LGCompanyDivision: "Eloqua",
         countryCode: p_CountryCode,
         bizRegNo: p_RegNum ? p_RegNum.replace(/[\s-]/g, "") : "",
         taxId: p_TaxId
