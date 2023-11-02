@@ -87,7 +87,7 @@ const Check_UID = async(data:IContact): Promise<any> => {
     };
     // 발급 신청 후 SingleResultAPI UID 조회를 위한 변수. 
     let issueUID: ICompanyData = {
-        LGCompanyDivision: "Eloqua",
+        LGCompanyDivision: "EKHQ",
         countryCode: p_CountryCode,
         bizRegNo: p_RegNum ? p_RegNum.replace(/[\s-]/g, "") : "",
         taxId: p_TaxId
