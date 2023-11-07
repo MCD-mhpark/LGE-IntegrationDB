@@ -32,17 +32,17 @@ const Get_ContactList = async(code:string, time: string, pageindex?:number): Pro
         queryString.search = timeQuery + krQuery;
         //test
         //queryString.search = `C_Company_Country_Code1="KR"C_KR_Business_Registration_Number1!=""emailAddress=test*`
-        
+
     }else if(code == "Global"){
         //C_Country != NULL && South Korea && TaxID != NULL
-        let globalQuery = `C_Company_Country_Code1!="KR"C_Company_Country_Code1!=""C_DUNS_Number1!=""C_LastName!=""C_Common_Field__51!="통합DB제외"`
+        let globalQuery = `C_Company_Country_Code1!="KR"C_Company_Country_Code1!=""C_LastName!=""C_Common_Field__51!="통합DB제외"C_DUNS_Number1>0`
         //let ktglobalQuery = `C_Company_Country_Code1!="KR"C_Company_Country_Code1!=""C_Tax_ID1!=""C_LastName!=""`
         queryString.search = timeQuery + globalQuery;
 
     }else if(code == "Pending" && time == "2차시기"){
         //하루에 한번만 실행되면 됨으로 2차시기 때만 로직 실행
         ptimeQuery = `C_DateModified>='${utils.yesterday_getDateTime()} 00:00:00'C_DateModified<='${utils.yesterday_getDateTime()} 23:59:59'`;
-        let pendingQuery = `C_Account_UID1="pending*`
+        let pendingQuery = `C_Account_UID1="pending*"`
         queryString.search = ptimeQuery + pendingQuery;
     }
     
@@ -66,7 +66,7 @@ const Check_UID = async(data:IContact): Promise<any> => {
     const p_CountryCode = utils.matchFieldValues(data, '100458'); //Company Country Code
     const p_CompanyName = data.hasOwnProperty('accountName') ? data.accountName : "";
     const p_RegNum = utils.matchFieldValues(data, '100398');
-    const p_DunsNum = utils.matchFieldValues(data, '100435');
+    const p_DunsNum = Math.floor(utils.matchFieldValues(data, '100435')).toString();;
     
     //logger.info(`email: ${email}, companyCode: ${p_CountryCode}, uid: ${p_uid}, CompanyName: ${p_CompanyName}, regNum: ${p_RegNum}, DunsNum: ${p_DunsNum}`);
     
@@ -104,10 +104,10 @@ const Check_UID = async(data:IContact): Promise<any> => {
         
         let queryString: IReqEloqua = { search: '', depth:'complete' };
         if(p_CountryCode == 'KR'){
-            queryString.search =  `M_Company_Country_Code1='${p_CountryCode}'M_Business_Registration_Number1='${p_RegNum}'`
+            queryString.search = `M_Company_Country_Code1='${p_CountryCode}'M_Business_Registration_Number1='${p_RegNum}'`
         }else{
             if(p_DunsNum){
-                queryString.search =  `M_Company_Country_Code1='${p_CountryCode}'M_DUNS_Number1'${p_DunsNum}'`
+                queryString.search = `M_Company_Country_Code1='${p_CountryCode}'M_DUNS_Number1='${p_DunsNum}'`
             }        
         }
 

@@ -150,7 +150,7 @@ const UID_Process = async(time:string): Promise<void> => {
 
     } catch (error) {
         logger.err('### UID_Process Contact Controller Error ###');
-        logger.err(error);
+        logger.err(error.stack);
         //res.json(error);
     }
 

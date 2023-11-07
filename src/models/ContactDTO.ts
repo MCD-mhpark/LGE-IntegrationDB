@@ -460,7 +460,7 @@ export class SendContactData {
   JobTitle: string;
   Department: string;
   AccountName: string;
-  AccountUID: string;
+  AccountDUID: string;
   CountryCode: string;
   Attribute1: string;
   Attribute2: string;
@@ -487,7 +487,7 @@ export class SendContactData {
       this.SourceSystemDivision = "Eloqua";
       this.SourceSystemKey1 = customObjectData.contactId+'-'+customObjectData.id;
       this.Email = customObjectData.name;
-      this.UID =  this.getFieldValueById(customObjectData, "3280"); //Contact UID
+      this.UID = this.getFieldValueById(customObjectData, "3280"); //Contact UID
       this.LastName = this.getFieldValueById(customObjectData, "2943"); //Last Name
       this.FirstName = this.getFieldValueById(customObjectData, "2942"); //First Name
       this.PhoneNumber = this.getFieldValueById(customObjectData, "3149"); //Mobile Phone
@@ -499,7 +499,7 @@ export class SendContactData {
       this.JobTitle = this.getFieldValueById(customObjectData, "3157"); //Job Title
       this.Department = this.getFieldValueById(customObjectData, "3151"); //Department
       this.AccountName = this.getFieldValueById(customObjectData, "2944"); //Company
-      this.AccountUID = this.getFieldValueById(customObjectData, "2937"); //Account UID
+      this.AccountDUID = this.getFieldValueById(customObjectData, "2937"); //Account UID
       this.CountryCode = this.getFieldValueById(customObjectData, "2939"); //국가코드
       this.Attribute1 = this.getFieldValueById(customObjectData, "3147"); //First Name and Last Name => 고객 Full Name
       this.Attribute2 = this.getFieldValueById(customObjectData, "3155"); //City => 고객이 거주하는 도시
