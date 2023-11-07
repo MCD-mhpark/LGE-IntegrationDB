@@ -12,5 +12,6 @@ export default class Contact {
     delete(id: number): Promise<any>;
     form_Create(id: number, data: any): Promise<any>;
     cod_Get(id: number, options?: any): Promise<any>;
+    cod_Create(id: number, data: any): Promise<any>;
     cod_Update(parentid: number, id: number, data: any): Promise<any>;
 }

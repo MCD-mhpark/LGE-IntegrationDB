@@ -67,6 +67,16 @@ class Contact {
         });
     }
 
+    //CustomObject Data Search
+    cod_Create(id, data) {
+        return this.client._request({
+            timeout: 0,
+            method: 'POST',
+            url: `/api/REST/2.0/data/customObject/${id}/instance`,
+            data,
+        });
+    }
+
     //CustomObject Data update
     cod_Update(parentid, id, data) {
         return this.client._request({
