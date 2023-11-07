@@ -23,7 +23,7 @@ const Get_ContactList = async(code:string, time: string, pageindex?:number): Pro
     if(time == "1차시기"){timeQuery = `C_DateModified>='${utils.yesterday_getDateTime()} 00:00:00'C_DateModified<'${utils.yesterday_getDateTime()} 15:00:00'`};
     if(time == "2차시기"){timeQuery = `C_DateModified>'${utils.yesterday_getDateTime()} 16:00:00'C_DateModified<='${utils.yesterday_getDateTime()} 23:59:59'`};
     
-    //if(time == "수동업로드"){timeQuery = `C_DateModified>'2023-10-06 16:00:00'C_DateModified<='2023-10-06 23:59:59'`};
+    if(time == "수동업로드"){timeQuery = `email="pillai86@gmail.com"`};
     //if(time == "수동업로드"){timeQuery = `C_Common_Field__41="통합DBTEST"`};
 
     if(code == "KR"){
@@ -32,14 +32,16 @@ const Get_ContactList = async(code:string, time: string, pageindex?:number): Pro
         queryString.search = timeQuery + krQuery;
         //test
         //queryString.search = `C_Company_Country_Code1="KR"C_KR_Business_Registration_Number1!=""emailAddress=test*`
+        
     }else if(code == "Global"){
         //C_Country != NULL && South Korea && TaxID != NULL
-        let globalQuery = `C_Company_Country_Code1!="KR"C_Company_Country_Code1!=""C_Tax_ID1!=""C_LastName!=""C_Common_Field__51!="통합DB제외"`
+        let globalQuery = `C_Company_Country_Code1!="KR"C_Company_Country_Code1!=""C_DUNS_Number1!=""C_LastName!=""C_Common_Field__51!="통합DB제외"`
         //let ktglobalQuery = `C_Company_Country_Code1!="KR"C_Company_Country_Code1!=""C_Tax_ID1!=""C_LastName!=""`
         queryString.search = timeQuery + globalQuery;
-    }else if(code == "Pending"){
-        if(time == "1차시기"){ptimeQuery = `C_DateModified>='${utils.yesterday_getDateTime()} 00:00:00'C_DateModified<'${utils.yesterday_getDateTime()} 15:30:00'`};
-        if(time == "2차시기"){ptimeQuery = `C_DateModified>='${utils.yesterday_getDateTime()} 15:30:00'C_DateModified<='${utils.yesterday_getDateTime()} 23:59:59'`};
+
+    }else if(code == "Pending" && time == "2차시기"){
+        //하루에 한번만 실행되면 됨으로 2차시기 때만 로직 실행
+        ptimeQuery = `C_DateModified>='${utils.yesterday_getDateTime()} 00:00:00'C_DateModified<='${utils.yesterday_getDateTime()} 23:59:59'`;
         let pendingQuery = `C_Account_UID1="pending*`
         queryString.search = ptimeQuery + pendingQuery;
     }
@@ -62,15 +64,16 @@ const Check_UID = async(data:IContact): Promise<any> => {
     const email = data.emailAddress;
     const p_uid = utils.matchFieldValues(data, '100423') ? utils.matchFieldValues(data, '100423') : ""; 
     const p_CountryCode = utils.matchFieldValues(data, '100458'); //Company Country Code
-    const p_CompanyName = data.hasOwnProperty('accountName') ? data.accountName : undefined;
+    const p_CompanyName = data.hasOwnProperty('accountName') ? data.accountName : "";
     const p_RegNum = utils.matchFieldValues(data, '100398');
-    const p_TaxId = utils.matchFieldValues(data, '100437');
+    const p_DunsNum = utils.matchFieldValues(data, '100435');
     
-    //logger.info(`email: ${email}, companyCode: ${p_CountryCode}, uid: ${p_uid}, CompanyName: ${p_CompanyName}, regNum: ${p_RegNum}, taxId: ${p_TaxId}`);
+    //logger.info(`email: ${email}, companyCode: ${p_CountryCode}, uid: ${p_uid}, CompanyName: ${p_CompanyName}, regNum: ${p_RegNum}, DunsNum: ${p_DunsNum}`);
     
-    
-    // Check_UID의 Return 변수.
-    let uResult: {email:string, uID: string, company: string, regName?:string, taxId?:string }  = { email, uID: p_uid, company: '', regName: p_RegNum, taxId:p_TaxId };
+    // **Check_UID의 Return 변수.
+    let uResult: {email:string, uID: string, company: string, regName?:string, DunsNum?:string } 
+        = { email, "uID": p_uid, "company": p_CompanyName, "DunsNum": p_DunsNum, "regName": p_RegNum };
+
     // UID 발급을 위한 변수.
     let reqUID: IreqAccountRegister = {
         Account: [
@@ -81,26 +84,30 @@ const Check_UID = async(data:IContact): Promise<any> => {
                 Country: p_CountryCode ,
                 AccountName: p_CompanyName,
                 CompanyRegistrationNumber: p_RegNum ? p_RegNum.replace(/[\s-]/g, "") : "",
-                TaxId : p_TaxId,
+                DunsNumber : p_DunsNum,
             }
         ]
     };
+
     // 발급 신청 후 SingleResultAPI UID 조회를 위한 변수. 
     let issueUID: ICompanyData = {
         LGCompanyDivision: "EKHQ",
         countryCode: p_CountryCode,
         bizRegNo: p_RegNum ? p_RegNum.replace(/[\s-]/g, "") : "",
-        taxId: p_TaxId
+        dunsNo: p_DunsNum
     }
-        
+
+    /**
+     * Check_UID PROCESS
+     **/
     try {
         
         let queryString: IReqEloqua = { search: '', depth:'complete' };
         if(p_CountryCode == 'KR'){
             queryString.search =  `M_Company_Country_Code1='${p_CountryCode}'M_Business_Registration_Number1='${p_RegNum}'`
         }else{
-            if(p_TaxId){
-                queryString.search =  `M_Company_Country_Code1='${p_CountryCode}'M_Tax_ID1='${p_TaxId}'`
+            if(p_DunsNum){
+                queryString.search =  `M_Company_Country_Code1='${p_CountryCode}'M_DUNS_Number1'${p_DunsNum}'`
             }        
         }
 
@@ -109,14 +116,14 @@ const Check_UID = async(data:IContact): Promise<any> => {
 
         //2. 있을 경우 Eloqua Account Table UID Return.
         if(eloquaAccount.elements.length !== 0){
-            logger.info(`### email: ${email} Eloqua UID 존재=> ${p_CountryCode}, ${p_CompanyName}, ${p_RegNum}, ${p_TaxId} ###`);
+            logger.info(`### email: ${email}(${p_DunsNum}) Eloqua DUID 존재 => ${p_CountryCode}, ${p_CompanyName} ###`);
             uResult.uID = utils.matchFieldValues(eloquaAccount.elements[0], '100424'); //100424: Account Fields ID
             uResult.company =  eloquaAccount.elements[0].name;
             
         // 2. 없을 경우 발급요청(companyName != null) 후 5초 대기 (단, Account UID가 pending* 인 것은 요청 하지 않음)
         }else if (eloquaAccount.elements.length == 0 && p_CompanyName !== undefined && !p_uid.startsWith('pending')){
 
-            logger.info(`### email: ${email} UID 발급 요청=> ${p_CountryCode}, ${p_CompanyName}, ${p_RegNum}, ${p_TaxId} ###`);
+            logger.warn(`### email: ${email} UID 발급 요청=> ${p_CountryCode}, ${p_CompanyName}, BizNo: ${p_RegNum} , DunsNum: ${p_DunsNum} ###`);
             //console.log(reqUID);
 
             //2-1. UID 발급 API 
@@ -135,36 +142,35 @@ const Check_UID = async(data:IContact): Promise<any> => {
                     uResult.company = issueUIDResult.Account[0].Name;
 
                     /*
-                    * Account Insert 로직이 필요함 중복 요청을 안하기 위해서 
+                    * Account Insert 로직이 필요함 중복 요청을 안하기 위해서 폼프로세싱 처리.
                     */
                     const AccountFormId = 8930;
                     let account = {
                         UID: uResult.uID,
                         CountryCode: p_CountryCode,
                         BizNo: p_RegNum,
-                        TaxId: p_TaxId,
+                        TaxId: "",
                         CompName: uResult.company,
-                        DUNSNo: ""
+                        DUNSNo: p_DunsNum
                     }
                     let convertFormData = new AccountForm(account);
 
                     await lge_eloqua.contacts.form_Create(AccountFormId, convertFormData);
+                    logger.info(`### ${p_DunsNum} => DUID 폼프로세싱 처리 완료 ###`)
 
                 }else {
 
                     //3-1. 발급 요청한 Company가 조회 되지 않을 경우
                     logger.warn(`
                     ***CHECKPOINT!***
-                    pending =>  ${p_CountryCode}, ${p_CompanyName}, ${p_RegNum}, ${p_TaxId} 
-                    pending AccountRegister result => ${JSON.stringify(value.result)} 
-                    `);
+                    pending =>  ${p_CountryCode}, ${p_CompanyName}, ${p_DunsNum}, ${p_RegNum} 
+                    pending AccountRegister result => ${JSON.stringify(value.result)} `);
                     /*
                     * 추 후 발급 결과 조회 API 로그가 필요함 
                     */
                     uResult.company = p_CompanyName;
                     uResult.uID = `pending(${JSON.parse(value.result).Account[0].VID})`;
                 }
-                
         
             }).catch(error => {
                 throw error;
@@ -175,7 +181,7 @@ const Check_UID = async(data:IContact): Promise<any> => {
         return uResult;
 
     } catch (error) {
-        logger.err(`### Check_UID logic Error : ${p_CountryCode}, ${p_CompanyName}, ${p_RegNum}, ${p_TaxId} ###`);
+        logger.err(`### Check_UID logic Error : ${p_CountryCode}, ${p_CompanyName}, DunsNum: ${p_DunsNum}, BizNo: ${p_RegNum} ###`);
         logger.err(error.message);
         logger.err(error.stack);
         return `Check_UID logic Error`;
