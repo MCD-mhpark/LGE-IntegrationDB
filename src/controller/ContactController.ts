@@ -86,14 +86,14 @@ const UID_Process = async(time:string): Promise<void> => {
                             const updateResult:IUpdateContact = await ContactService.Check_UID(data);
                             logger.info(`### @1번@ CheckUID ${JSON.stringify(updateResult)} END ###`);
 
-                            if(updateResult.uID !== '' && updateResult.uID !== undefined){
+                            if(updateResult.DUID !== '' && updateResult.DUID !== undefined){
                                 //정상 발급 OR pending(UID)
-                                logger.info(`### @2번@ UID 정상 발급 : ${updateResult.uID} ###`);
+                                logger.info(`### @2번@ UID 정상 발급 : ${updateResult.DUID} ###`);
                                 resolve(updateResult);
                             }else{
                                 //UID 발급 조건 충족 X 또는 발급 과정에서 ERROR.
-                                logger.info(`### @2번@ UID 발급 조건에서 PASS : ${updateResult.uID} ###`);
-                                logger.info(`${updateResult.email}: form insert Pass reasonInfo => CompanyName: ${updateResult.company} regNum: ${updateResult.regName}, taxId: ${updateResult.taxId}`);
+                                logger.info(`### @2번@ UID 발급 조건에서 PASS : ${updateResult.DUID} ###`);
+                                logger.info(`${updateResult.email}: form insert Pass reasonInfo => CompanyName: ${updateResult.company}, dunsNo: ${updateResult.dunsNo} bizRegNo: ${updateResult.bizRegNo}`);
                                 reject(`${data.emailAddress} UID 발급 fail`);
                             }
                         })
@@ -233,6 +233,7 @@ const error_Contact = async ():Promise<void> => {
     
     //2. contact 이메일 기준으로 Contact UID 조회
     for(let contact of resdata.elements){
+        console.log('현재 잘못된 UID', utils.matchFieldValues(contact, "3280"))
         let CustomObjectId = contact.id;
 
         let searchData = {

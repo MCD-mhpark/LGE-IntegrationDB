@@ -10,9 +10,9 @@ export interface IReqEloqua {
 export interface IUpdateContact {
   email: string | undefined;
   company: string | undefined;
-  uID: string | undefined;
-  regName?: string,
-  taxId?: string
+  DUID: string | undefined;
+  bizRegNo?: string,
+  dunsNo?: string
 }
 
 export class updateContact {
@@ -123,7 +123,7 @@ export class ContactForm {
           new FormFieldValue("FieldValue", "163936", "BU별 Job Function", this.getFieldValueBusinessType(contact, 'JobFunction')),
           new FormFieldValue("FieldValue", "163937", "Job Title", this.getFieldValueById(contact, "100292")),
           new FormFieldValue("FieldValue", "163932", "Marketing Event", this.getFieldValueById(contact, "100203")),
-          new FormFieldValue("FieldValue", "158363", "Account UID", updateContact.uID),
+          new FormFieldValue("FieldValue", "158363", "Account UID", updateContact.DUID),
           new FormFieldValue("FieldValue", "163941", "Zip or Postal Code", this.getFieldValueById(contact, "100011")),
           
           // 각 동의 항목별 KR, Global따라 매핑 되어야 하는 필드가 다름.
