@@ -74,7 +74,7 @@ export function getTodayWithTime() {
     return year + "-" + month + "-" + day + " " + hours + ":" + minutes + ":" + seconds;
 }
 
-// 7초 대기 함수
+// 대기 함수
 export function delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }

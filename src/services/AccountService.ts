@@ -1,10 +1,12 @@
 import { lge_eloqua, lgeSdk_eloqua } from '@src/routes/Auth';
 import { IAccountRes } from "@src/api/interface/interfaceApi"
-import { Account, AccountForm } from "@src/models/AccountDTD"
+import { Account, AccountForm, IEloquaAccount } from "@src/models/AccountDTO"
 import logger from '../public/modules/jet-logger/lib/index';
+import * as utils from "@src/util/etc_function"
+import { CustomObjectData, IAccountCOD, ICo } from '@src/models/CustomObjectDTO';
 
 
-const integrationAccount = async (IntgrationDB_AccountData: IAccountRes): Promise<any> => {
+const integrationAccount = async (AccountData: ICo): Promise<any> => {
 
     try {
 
@@ -13,13 +15,38 @@ const integrationAccount = async (IntgrationDB_AccountData: IAccountRes): Promis
         //200건씩 처리
         const batchSize = 200;
 
-        const AccountArr: Account[] = IntgrationDB_AccountData.result.Account;
-        const formId = 8930;
+        const AccountArr:CustomObjectData[] = AccountData.elements;
+        //const formId = 8930;
 
-        for(let i = 0; i < AccountArr.length; i += batchSize){
+        for(let i = 0; i < AccountArr.length; i++ ){
+        //for(let i = 0; i < AccountArr.length; i += batchSize){
             
             //1000건씩 처리되는 배열 200건씩 자르기
-            let batchData:Account[] = AccountArr.slice(i, i + batchSize);
+            // let batchData:Account[] = AccountArr.slice(i, i + batchSize);
+            // console.log(i);
+            // console.log(i + batchSize);
+            
+            // for (const account of batchData){
+                
+                //1. Eloqua Account Table 유무 확인
+                let s_options = { search: `M_Account_UID1=${utils.matchFieldValues(AccountArr[i], "3780")}`, depth: "minimal" };
+                let searchResult = await lge_eloqua.accounts.getAll(s_options);
+
+                //console.log('total', searchResult.total);
+                console.log(AccountArr[i]);
+                
+                //2. Eloqua Account Create or Update
+                if(searchResult.total == 0){
+                    const c_data = new IEloquaAccount(AccountArr[i]);
+                    lge_eloqua.accounts.create(c_data);
+                }else{
+                    let id = searchResult.elements[0].id
+                    const u_data = new IEloquaAccount(AccountArr[i], id);
+                    lge_eloqua.accounts.update(id, u_data);
+                }
+            }
+
+            /** 
 
             //result Data .length Insert logic
             for (const account of batchData){
@@ -42,13 +69,9 @@ const integrationAccount = async (IntgrationDB_AccountData: IAccountRes): Promis
                     logger.err(`Promise_allSettled at ${index} rejected with reason: ${JSON.stringify(result, null, 2)}`);
                 }
             });
-        }
 
-        // resData 성공 시,
-        // status:'fulfilled'
-        // value:{type: 'FormData', id: '13536981', fieldValues: Array(22), submittedAt: '1697418079'}
- 
-
+            **/
+        
     } catch (error) {
         logger.err({
             "error" : "integrationAccount service Error",
@@ -58,6 +81,77 @@ const integrationAccount = async (IntgrationDB_AccountData: IAccountRes): Promis
     }
 };
 
+const insert_COD = async (IntgrationDB_AccountData: IAccountRes): Promise<any> => {
+
+    try {
+        //200건씩 처리
+        const batchSize = 200;
+
+        const AccountArr: Account[] = IntgrationDB_AccountData.result.Account;
+        const CO_Id = 462;
+
+        for(let i = 0; i < AccountArr.length; i += batchSize){
+            
+            //1000건씩 처리되는 배열 200건씩 자르기
+            let batchData:Account[] = AccountArr.slice(i, i + batchSize);
+            
+            for (const account of batchData){
+                
+              let data = new IAccountCOD(account);
+                
+                lge_eloqua.contacts.cod_Create(CO_Id, data).then((result:any) => {
+                    //console.log(result);
+                }).catch((error:any) => {
+                    logger.err(data);
+                    logger.err(error); logger.err(error.message);
+                });
+            }
+
+        }
+
+    } catch (error) {
+        logger.err({
+            "error" : "insert_CO service ERROR",
+            "response_msg" : error.message
+        });
+        throw error.stack
+    }
+};
+
+
+const get_AccountCOD = async (type:string, count?:boolean, page?:number) => {
+
+    //통합DB_Account_History Custom Object
+    const id:number = 462;
+    let queryString:{search:string, depth:string, page?:number} = {search: "null", depth:"complete"};
+    
+    if(type == 'insert_get'){
+        if(count) queryString.depth = "minimal"
+        queryString.search = `createdAt>='${utils.getYesterday()} 00:00:00'`
+        queryString.page = page == undefined ? 1 : page;
+    }
+
+    // // ____11 : 전송완료여부 필드
+    // queryString.search = `createdAt>='${utils.getToday()} 23:59:59'`
+    //queryString.search = '____11=""'
+
+    logger.info(`queryString: ${queryString}`);
+    return await lge_eloqua.contacts.cod_Get(id, queryString).then((result: ICo) => {
+        if(count) return result.total;
+        return result;
+    }).catch((error: any) => {
+        logger.err({
+            "error" : 'Get_COD service ERROR',
+            "response_msg" : error.message
+        });
+        throw error.stack
+    });
+
+}
+
+const delete_COD = async (): Promise<any> => {
+
+}
 
 ////////////////////////////////////////////////////////
 /*
@@ -255,7 +349,10 @@ const integrationAccount = async (IntgrationDB_AccountData: IAccountRes): Promis
 
 
 export default {
-    integrationAccount
+    integrationAccount,
+    insert_COD,
+    delete_COD,
+    get_AccountCOD
 }
 
 

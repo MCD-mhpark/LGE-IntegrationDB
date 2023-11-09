@@ -320,4 +320,36 @@ export const ContactProvideAPI = async (data:any):Promise<any> => {
 
 }  
 
+// Contact 수정 API
+export const ContactMuitAPI = async (data:any):Promise<any> => {
+
+    //Access Token Value
+    const TOKEN = await GetToken();
+
+    return await axios({
+        method: "POST", 
+        //url: "https://lgcorp--dev.sandbox.my.salesforce.com/services/apexrest/CD/ContactMulti/resultset", // 개발 
+        //url: "https://lgcorp--sandbox.sandbox.my.salesforce.com/services/apexrest/CD/ContactMulti/resultset", // 품질
+        url: "https://lgcorp.my.salesforce.com/services/apexrest/CD/ContactMulti/resultset", //운영
+        headers: {
+            Authorization: `Bearer ${TOKEN}`
+          },
+        data, 
+        validateStatus: function (status) {
+            return status >= 200 && status <= 400; 
+          }
+    })
+    .then(function (response):AxiosResponse<any> {
+        return response.data;
+    })
+    .catch (function (error):AxiosError<any> {                        
+        logger.err({
+            "error" : "ContactMutiAPI 오류가 발생하였습니다.",
+            "response_msg" : [error.response ? JSON.stringify(error.response.data) : error]
+        });
+        return error.response ? JSON.stringify(error.response.data) : error;
+    })
+
+}  
+
 

@@ -1,6 +1,6 @@
 import { lge_eloqua, lgeSdk_eloqua } from '@src/routes/Auth';
 import { Contact, IReqEloqua, ContactForm, IUpdateContact, IContact, SendContactData, CustomObjectData } from "@src/models/ContactDTO";
-import { AccountForm } from "@src/models/AccountDTD"
+import { AccountForm } from "@src/models/AccountDTO"
 import * as LgApi from "@src/api/Lg_Api"
 import {IreqAccountRegister, ICompanyData, IresAccountRegister} from "@src/api/interface/interfaceApi"
 import * as utils from "@src/util/etc_function";
@@ -23,7 +23,7 @@ const Get_ContactList = async(code:string, time: string, pageindex?:number): Pro
     if(time == "1차시기"){timeQuery = `C_DateModified>='${utils.yesterday_getDateTime()} 00:00:00'C_DateModified<'${utils.yesterday_getDateTime()} 15:00:00'`};
     if(time == "2차시기"){timeQuery = `C_DateModified>'${utils.yesterday_getDateTime()} 16:00:00'C_DateModified<='${utils.yesterday_getDateTime()} 23:59:59'`};
     
-    if(time == "수동업로드"){timeQuery = `email="pillai86@gmail.com"`};
+    if(time == "수동업로드"){timeQuery = `email="alababidi@compuset.com"`};
     //if(time == "수동업로드"){timeQuery = `C_Common_Field__41="통합DBTEST"`};
 
     if(code == "KR"){
@@ -39,9 +39,9 @@ const Get_ContactList = async(code:string, time: string, pageindex?:number): Pro
         //let ktglobalQuery = `C_Company_Country_Code1!="KR"C_Company_Country_Code1!=""C_Tax_ID1!=""C_LastName!=""`
         queryString.search = timeQuery + globalQuery;
 
-    }else if(code == "Pending" && time == "2차시기"){
-        //하루에 한번만 실행되면 됨으로 2차시기 때만 로직 실행
-        ptimeQuery = `C_DateModified>='${utils.yesterday_getDateTime()} 00:00:00'C_DateModified<='${utils.yesterday_getDateTime()} 23:59:59'`;
+    }else if(code == "Pending"){
+        if(time == "1차시기")ptimeQuery = `C_DateModified>='${utils.yesterday_getDateTime()} 15:00:00'C_DateModified<'${utils.yesterday_getDateTime()} 15:30:00'`;
+        if(time == "2차시기")ptimeQuery = `C_DateModified>='${utils.yesterday_getDateTime()} 15:30:00'C_DateModified<='${utils.yesterday_getDateTime()} 16:00:00'`;
         let pendingQuery = `C_Account_UID1="pending*"`
         queryString.search = ptimeQuery + pendingQuery;
     }
@@ -62,7 +62,7 @@ const Check_UID = async(data:IContact): Promise<any> => {
 
     
     const email = data.emailAddress;
-    const p_uid = utils.matchFieldValues(data, '100423') ? utils.matchFieldValues(data, '100423') : ""; 
+    const p_DUID = utils.matchFieldValues(data, '100423') ? utils.matchFieldValues(data, '100423') : ""; 
     const p_CountryCode = utils.matchFieldValues(data, '100458'); //Company Country Code
     const p_CompanyName = data.hasOwnProperty('accountName') ? data.accountName : "";
     const p_RegNum = utils.matchFieldValues(data, '100398');
@@ -71,8 +71,8 @@ const Check_UID = async(data:IContact): Promise<any> => {
     //logger.info(`email: ${email}, companyCode: ${p_CountryCode}, uid: ${p_uid}, CompanyName: ${p_CompanyName}, regNum: ${p_RegNum}, DunsNum: ${p_DunsNum}`);
     
     // **Check_UID의 Return 변수.
-    let uResult: {email:string, uID: string, company: string, regName?:string, DunsNum?:string } 
-        = { email, "uID": p_uid, "company": p_CompanyName, "DunsNum": p_DunsNum, "regName": p_RegNum };
+    let uResult: {email:string, DUID: string, company: string, regName?:string, DunsNum?:string } 
+        = { email, "DUID": p_DUID, "company": p_CompanyName, "DunsNum": p_DunsNum, "regName": p_RegNum };
 
     // UID 발급을 위한 변수.
     let reqUID: IreqAccountRegister = {
@@ -117,11 +117,11 @@ const Check_UID = async(data:IContact): Promise<any> => {
         //2. 있을 경우 Eloqua Account Table UID Return.
         if(eloquaAccount.elements.length !== 0){
             logger.info(`### email: ${email}(${p_DunsNum}) Eloqua DUID 존재 => ${p_CountryCode}, ${p_CompanyName} ###`);
-            uResult.uID = utils.matchFieldValues(eloquaAccount.elements[0], '100424'); //100424: Account Fields ID
+            uResult.DUID = utils.matchFieldValues(eloquaAccount.elements[0], '100424'); //100424: Account Fields ID
             uResult.company =  eloquaAccount.elements[0].name;
             
         // 2. 없을 경우 발급요청(companyName != null) 후 5초 대기 (단, Account UID가 pending* 인 것은 요청 하지 않음)
-        }else if (eloquaAccount.elements.length == 0 && p_CompanyName !== undefined && !p_uid.startsWith('pending')){
+        }else if (eloquaAccount.elements.length == 0 && p_CompanyName !== undefined && !p_DUID.startsWith('pending')){
 
             logger.warn(`### email: ${email} UID 발급 요청=> ${p_CountryCode}, ${p_CompanyName}, BizNo: ${p_RegNum} , DunsNum: ${p_DunsNum} ###`);
             //console.log(reqUID);
@@ -138,7 +138,7 @@ const Check_UID = async(data:IContact): Promise<any> => {
                 //2-2. 발급이 된 UID Return
                 if(issueUIDResult.Account.length !== 0){
                     //logger.info(`### issueUIDResult 발급결과 => ${JSON.stringify(issueUIDResult)} ###`);                    
-                    uResult.uID = issueUIDResult.Account[0].UID;
+                    uResult.DUID = issueUIDResult.Account[0].DUID;
                     uResult.company = issueUIDResult.Account[0].Name;
 
                     /*
@@ -146,7 +146,7 @@ const Check_UID = async(data:IContact): Promise<any> => {
                     */
                     const AccountFormId = 8930;
                     let account = {
-                        UID: uResult.uID,
+                        DUID: uResult.DUID,
                         CountryCode: p_CountryCode,
                         BizNo: p_RegNum,
                         TaxId: "",
@@ -169,7 +169,7 @@ const Check_UID = async(data:IContact): Promise<any> => {
                     * 추 후 발급 결과 조회 API 로그가 필요함 
                     */
                     uResult.company = p_CompanyName;
-                    uResult.uID = `pending(${JSON.parse(value.result).Account[0].VID})`;
+                    uResult.DUID = `pending(${JSON.parse(value.result).Account[0].VID})`;
                 }
         
             }).catch(error => {
@@ -206,15 +206,20 @@ const Insert_Form = async (contact:Contact, updateContact:IUpdateContact): Promi
 }
 
 
-const Get_COD = async (pageindex: number, search?: string) => {
+const Get_COD = async (type:string, pageindex?: number) => {
 
     //통합DB_History Custom Object
     const id:number = 408;
     let queryString: IReqEloqua = { search: '', page: pageindex ,depth:'complete' };
 
     // ____11 : 전송완료여부 필드
-    queryString.search = `createdAt>='${utils.getToday()} 00:00:00'createdAt<='${utils.getToday()} 23:59:59'____11=""`
-    //queryString.search = '____11=""'
+    if(type == "send"){
+        queryString.search = `createdAt>='${utils.getToday()} 00:00:00'createdAt<='${utils.getToday()} 23:59:59'____11=""`
+        //queryString.search = '____11=""'
+    }
+    if(type == "error"){
+        queryString.search = `______11="Failed to Execute : Record does not exist"`
+    }
 
     return await lge_eloqua.contacts.cod_Get(id, queryString).then((result: any) => {
         return result

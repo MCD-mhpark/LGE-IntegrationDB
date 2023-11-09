@@ -1,8 +1,10 @@
 import express, { Request, Response } from "express";
+import { lge_eloqua, lgeSdk_eloqua } from '@src/routes/Auth';
 import { Contact, IReqEloqua, ContactForm, IUpdateContact, IContact, SendContactData, CustomObjectData } from "@src/models/ContactDTO";
 import ContactService from "@src/services/ContactService"
 import {convertCountry} from "@src/api/interface/interfaceApi"
 import * as utils from "@src/util/etc_function";
+import * as LgApi from "@src/api/Lg_Api"
 import logger from '../public/modules/jet-logger/lib/index';
 import { rejects } from 'assert';
 import { resolve } from 'path';
@@ -180,7 +182,7 @@ const Send_Contact = async ():Promise<void> => {
             logger.warn(`현재 page: ${page}`);
             
             //1.통합 DB 전송 Custom Object Data 조회
-            const resdata = await ContactService.Get_COD(page);
+            const resdata = await ContactService.Get_COD("send", page);
             const customOjbectData:CustomObjectData[] = resdata.elements; 
 
             //1-1. element == 0 이면 While 문 break;
@@ -224,6 +226,55 @@ const Send_Contact = async ():Promise<void> => {
     
 }
 
+const error_Contact = async ():Promise<void> => {
+
+    //1. 특정 조건 COD 조회
+    const resdata:any = await ContactService.Get_COD("error");
+    
+    //2. contact 이메일 기준으로 Contact UID 조회
+    for(let contact of resdata.elements){
+        let CustomObjectId = contact.id;
+
+        let searchData = {
+          "LGCompanyDivision" : "EKHQ",
+          "Email" : contact.name,
+          "AccountName" : "",
+          "ContactName" : ""
+        }
+        let db_CONTACT = await LgApi.ContactMuitAPI(searchData);
+        console.log(JSON.parse(db_CONTACT.result));
+       let data = JSON.parse(db_CONTACT.result);
+
+
+        //3. Cod Update 하기 
+        let updateCOData = {
+                fieldValues: [
+                            //Contact UID
+                            {
+                                "id": "3280",
+                                "value": data.Contact[0].UID
+                            },
+                            //통합DB 전송 여부
+                            {
+                                "id": "3181",
+                                "value": "" 
+                            },
+                            //임시필드 1
+                            {
+                                "id": "3162",
+                                "value": ""
+                            }
+                        ]
+                }
+
+        await lge_eloqua.contacts.cod_Update(408, CustomObjectId, updateCOData);
+    
+        //4. Contact Send 로직 다시 돌리기.
+    }
+
+
+}
+
 /*
 * COD 30일 지난 데이터 삭제 로직(추 후 필요한 기능여부)
 */
@@ -240,6 +291,7 @@ const Send_Contact = async ():Promise<void> => {
 export default {
     //test,
     UID_Process,
-    Send_Contact
+    Send_Contact,
+    error_Contact
     
 }
