@@ -52,7 +52,7 @@ if(process.env.INSTANCE_ID === '2'){
 // 랜딩페이지에서 사용하는 Company 조회
 router.post('/gpSinglexAPI', slogPath ,async (req: Request, res: Response):Promise<void> => {
     try{
-        let result = await api_searchCompany(req.body.type, req.body.url ,req.body.value);
+        let result = await api_searchCompany(req.body.type, req.body.url ,req.body.device ,req.body.value);
         res.json(result);
     }catch(error){
         logger.err('### Error /gpSinglexAPI ###');
