@@ -8,9 +8,9 @@ axios.defaults.withCredentials = true;
 
 // 회사 조회 API
 export const api_searchCompany = async (type:string, url:string, device:string, postData?:any) => {
-    logger.info(`device: ${device}`);
-    logger.info(`postData: ${postData}`);
-    
+    logger.info(`device: ${JSON.stringify(device)}`);
+    logger.info(`postData: ${JSON.stringify(postData)}`);
+
       try {
         if (type === "GET") {
           const response = await axios.get(url);
