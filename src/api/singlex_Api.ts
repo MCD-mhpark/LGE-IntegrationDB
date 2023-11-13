@@ -1,12 +1,16 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
 import {convertCountry} from "@src/api/interface/interfaceApi"
+import logger from '../public/modules/jet-logger/lib/index';
 
 axios.defaults.headers.common["x-apikey"] = "GaZGU3ilGWJ5ZMKVXANlmW35EoTE4lPq";
 axios.defaults.headers.common["Content-Type"] = "application/json";
 axios.defaults.withCredentials = true;
 
 // 회사 조회 API
-export const api_searchCompany = async (type:string, url:string, postData?:any) => {
+export const api_searchCompany = async (type:string, url:string, device:string, postData?:any) => {
+    logger.info(`device: ${device}`);
+    logger.info(`postData: ${postData}`);
+    
       try {
         if (type === "GET") {
           const response = await axios.get(url);
