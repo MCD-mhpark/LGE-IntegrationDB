@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
 import {convertCountry} from "@src/api/interface/interfaceApi"
 
-axios.defaults.headers.common["x-apikey"] = "QM2iPGpFee0pWSCVT4xOphwdjf4YbFgj";
+axios.defaults.headers.common["x-apikey"] = "GaZGU3ilGWJ5ZMKVXANlmW35EoTE4lPq";
 axios.defaults.headers.common["Content-Type"] = "application/json";
 axios.defaults.withCredentials = true;
 
