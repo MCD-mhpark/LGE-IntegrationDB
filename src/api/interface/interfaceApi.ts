@@ -15,14 +15,14 @@ export interface ICompanyData {
 }
 
 
-export interface IresAccountRegister {
+export interface IAccountRegisterRes {
     timestamp: string;
     result: string;
     path: string;
     message: string;
 }
 
-export interface IreqAccountRegister {
+export interface IAccountRegisterReq {
     Account: {
       Country: string;
       AccountName?: string;
@@ -34,6 +34,59 @@ export interface IreqAccountRegister {
       DunsNumber?: string;
     }[];
 } 
+
+export interface IAccountProvideRes {
+    totalPage: number | null;
+    totalCount: number;
+    timestamp: string;
+    resultCount: number;
+    result: {
+      Account: AccountProvideInfo[];
+    };
+    perCount: number;
+    path: string;
+    nowPage: number;
+    message: string;
+  }
+  
+  export interface AccountProvideInfo {
+    Zip: string;
+    UID: string;
+    TaxId: string;
+    Salesamount: null | number;
+    Region: string;
+    PersonCorp: string;
+    MainBizCont: string;
+    LastModifiedDateTime: string;
+    EvalOrg: string;
+    EvalDate: string;
+    EstDate: string;
+    EmpCount: string;
+    DUNSNo: string;
+    DUID: string;
+    DQMStatusCode: string;
+    DetailAddr: string;
+    CriGrade: string;
+    CriCompScale: string;
+    CriBaseDate: string;
+    CreditRank: string;
+    CreditDiv: string;
+    CreatedDateTime: string;
+    CountryCode: string;
+    CorpNo: string;
+    CompTypeEn: string;
+    CompType: string;
+    CompScale: string;
+    CompNameEng: string;
+    CompName: string;
+    CEONameEng: string;
+    CEOName: string;
+    CashGrade: string;
+    CashBaseDate: string;
+    BizTypeName: string;
+    BizNo: string;
+    BizCondName: string;
+  }
 
 export function convertRegion(region: string): string {
     const RegionMap: { [key: string]: string } = {

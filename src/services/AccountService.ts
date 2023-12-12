@@ -1,67 +1,138 @@
 import { lge_eloqua, lgeSdk_eloqua } from '@src/routes/Auth';
-import { IAccountRes } from "@src/api/interface/interfaceApi"
-import { Account, AccountForm, IEloquaAccount } from "@src/models/AccountDTO"
+import { IAccountRes, IAccountProvideRes, AccountProvideInfo } from "@src/api/interface/interfaceApi"
 import logger from '../public/modules/jet-logger/lib/index';
 import * as utils from "@src/util/etc_function"
+import { Account, AccountForm, IEloquaAccount } from "@src/models/AccountDTO"
 import { CustomObjectData, IAccountCOD, ICo } from '@src/models/CustomObjectDTO';
+import { IAccountBulkCDO, ISyncRes, ISyncCheckRes } from "@src/models/BulkDTO"
 
+let insertArr:IAccountBulkCDO[] = [];
+const bulkInsert_CDO = async (AccountData: IAccountProvideRes, uri:string, nowpage:number, totalCount:number): Promise<void> => {
+
+    try {
+        const AccountArr: AccountProvideInfo[] = AccountData.result.Account
+        let insertResult:ISyncRes;
+        let checkSyncsUri:ISyncRes[] = [];
+
+        for (const account of AccountArr){
+            let data = new IAccountBulkCDO(account);
+            insertArr.push(data);
+        }
+
+        //page 10건 씩 bulk Insert API 처리
+        if(nowpage % 10 === 0 || totalCount < 1000){
+            insertResult = await lge_eloqua.bulk.co_Imports(uri, insertArr);
+            logger.info(insertResult);
+
+            let lastResult:ISyncCheckRes = await lge_eloqua.bulk.checkSync(insertResult.uri);
+            checkSyncsUri.push(lastResult);
+            logger.info(`integrationAccount page INDEX: ${nowpage} execute!`);
+            
+            if(totalCount < 1000){
+                for(const arr of checkSyncsUri){
+                    const checkResult:ISyncCheckRes = await lge_eloqua.bulk.checkSync(arr.uri);
+                    logger.warn(checkResult);   
+
+                    if(lastResult.status == 'active'){
+                        while(lastResult.status == 'active'){
+                            await utils.delay(1000);
+                            logger.info('bulk insert 진행중..')
+                            lastResult = await lge_eloqua.bulk.checkSync(arr.uri);
+                            if(lastResult.status !== 'active') break;
+                        }
+                        if(lastResult.status !== 'success'){
+                            const logResult = await lge_eloqua.bulk.checkSync(arr.uri+'/logs');
+                            logger.err(logResult);
+                        }
+                    }
+
+                    logger.warn('bulk insert 종료');
+                    logger.warn(lastResult);
+                }
+            }
+            //배열 초기화
+            insertArr = [];
+
+        }
+            // //DUID 중복이 있는지 확인
+            // const uniqueDUIDMap = new Map<string, IAccountBulkCDO>();
+            // const duplicateDUID: IAccountBulkCDO[] = [];
+            // insertArr.forEach((item) => {
+            //     uniqueDUIDMap.set(item.Account_UID1, item);
+            //     if(uniqueDUIDMap.has(item.Account_UID1)) {
+            //         duplicateDUID.push(item);
+            //         logger.warn(item);
+            //     }
+            // });
+
+            // //중복이 제거된 결과를 새로운 배열에 저장
+            // const uniqueInsertArr = Array.from(uniqueDUIDMap.values());
+
+    } catch (error) {
+        logger.err({
+            "error" : "bulkInsert_CDO service ERROR",
+            "response_msg" : error.message
+        });
+        throw error.stack
+    }
+};
+
+const checkSyncs = async (uri: string): Promise<void> => {
+
+    const lastResult:ISyncCheckRes = await lge_eloqua.bulk.checkSync(uri);
+    logger.warn(lastResult);
+
+}
 
 const integrationAccount = async (AccountData: ICo): Promise<any> => {
 
     try {
-
-        let resultarr = [];
-
-        //200건씩 처리
-        const batchSize = 200;
+        //500건씩 처리
+        const batchSize = 500;  
 
         const AccountArr:CustomObjectData[] = AccountData.elements;
-        //const formId = 8930;
 
-        for(let i = 0; i < AccountArr.length; i++ ){
-        //for(let i = 0; i < AccountArr.length; i += batchSize){
-            
-            //1000건씩 처리되는 배열 200건씩 자르기
-            // let batchData:Account[] = AccountArr.slice(i, i + batchSize);
-            // console.log(i);
-            // console.log(i + batchSize);
-            
-            // for (const account of batchData){
-                
-                //1. Eloqua Account Table 유무 확인
-                let s_options = { search: `M_Account_UID1=${utils.matchFieldValues(AccountArr[i], "3780")}`, depth: "minimal" };
-                let searchResult = await lge_eloqua.accounts.getAll(s_options);
+        for(let i = 0; i < AccountArr.length; i += batchSize){  
 
-                //console.log('total', searchResult.total);
-                console.log(AccountArr[i]);
-                
-                //2. Eloqua Account Create or Update
-                if(searchResult.total == 0){
-                    const c_data = new IEloquaAccount(AccountArr[i]);
-                    lge_eloqua.accounts.create(c_data);
-                }else{
-                    let id = searchResult.elements[0].id
-                    const u_data = new IEloquaAccount(AccountArr[i], id);
-                    lge_eloqua.accounts.update(id, u_data);
+            let resultarr = [];
+            //1000건씩 처리되는 배열 500건씩 자르기
+            let batchData = AccountArr.slice(i, i + batchSize);
+            console.log(i);
+            console.log(i + batchSize);
+            
+            for (const account of batchData){
+                    //1. Eloqua Account Table 유무 확인 
+
+                    async function accountLogic (account:any) {
+                        let s_options = { search: `M_Account_UID1=${utils.matchFieldValues(account, "3780")}`, depth: "minimal" };
+                        let searchResult = await lge_eloqua.accounts.getAll(s_options);
+                        
+                        if( Buffer.byteLength(utils.matchFieldValues(account, "3796")) > 100 ) {
+                            return;
+                        }else{
+                            //2. Eloqua Account Create or Update
+                            if(searchResult.total == 0){
+                                const c_data = new IEloquaAccount(account);
+                                lge_eloqua.accounts.create(c_data).then((result:any) => {/*console.log(result);*/
+                                }).catch((error:any) => {logger.err(error)});
+                                logger.info(`${account.name} 생성 완료`)
+                            }else{
+                                let id = searchResult.elements[0].id
+                                const u_data = new IEloquaAccount(account, id);
+                                lge_eloqua.accounts.update(id, u_data).then((result:any) => {/*console.log(result);*/
+                                }).catch((error:any) => {logger.err(error)});
+                                logger.info(`${account.name} 업데이트 완료`)
+                            }
+                        }
+                    } 
+
+                    resultarr.push(accountLogic(account));   
                 }
+
+                await Promise.allSettled(resultarr);
             }
 
             /** 
-
-            //result Data .length Insert logic
-            for (const account of batchData){
-
-                //Form 형식에 맞게 Data Convert
-                let convertFormData = new AccountForm(account);
-                
-                //Eloqua Form Insert 비동기 처리 
-                const Iresult = lge_eloqua.contacts.form_Create(formId, convertFormData);
-                resultarr.push(Iresult);
-            }
-            
-            //resultarr에 담긴 Promise를 병렬 처리
-            const resData = await Promise.allSettled(resultarr);
-            
             // 로그에 reject 된 Promise 결과 기록
             resData.forEach((result, index) => {
                 if (result.status == 'rejected') {
@@ -69,7 +140,6 @@ const integrationAccount = async (AccountData: ICo): Promise<any> => {
                     logger.err(`Promise_allSettled at ${index} rejected with reason: ${JSON.stringify(result, null, 2)}`);
                 }
             });
-
             **/
         
     } catch (error) {
@@ -77,35 +147,39 @@ const integrationAccount = async (AccountData: ICo): Promise<any> => {
             "error" : "integrationAccount service Error",
             "response_msg" : error.message
         });
-        throw error.stack
+        logger.err(error.stack);
     }
 };
 
 const insert_COD = async (IntgrationDB_AccountData: IAccountRes): Promise<any> => {
 
     try {
-        //200건씩 처리
-        const batchSize = 200;
+        let resultAr = [];
+        const batchSize = 500;
 
         const AccountArr: Account[] = IntgrationDB_AccountData.result.Account;
         const CO_Id = 462;
 
         for(let i = 0; i < AccountArr.length; i += batchSize){
             
-            //1000건씩 처리되는 배열 200건씩 자르기
             let batchData:Account[] = AccountArr.slice(i, i + batchSize);
             
             for (const account of batchData){
                 
               let data = new IAccountCOD(account);
                 
-                lge_eloqua.contacts.cod_Create(CO_Id, data).then((result:any) => {
+              const promiseFunc = lge_eloqua.contacts.cod_Create(CO_Id, data).then((result:any) => {
                     //console.log(result);
-                }).catch((error:any) => {
-                    logger.err(data);
-                    logger.err(error); logger.err(error.message);
-                });
+                    }).catch((error:any) => {
+                        logger.err(JSON.stringify(data));
+                        logger.err({error: error, "errorMsg": error.message, "errorStack": error.stack});
+                    });
+
+                resultAr.push(promiseFunc);
             }
+
+            await Promise.allSettled(resultAr);
+            logger.info(`500건 처리 완료`);
 
         }
 
@@ -128,6 +202,7 @@ const get_AccountCOD = async (type:string, count?:boolean, page?:number) => {
     if(type == 'insert_get'){
         if(count) queryString.depth = "minimal"
         queryString.search = `createdAt>='${utils.getYesterday()} 00:00:00'`
+        //queryString.search = `Company_Name1='Weifang Zexu Trading Co., Ltd.'`
         queryString.page = page == undefined ? 1 : page;
     }
 
@@ -135,7 +210,7 @@ const get_AccountCOD = async (type:string, count?:boolean, page?:number) => {
     // queryString.search = `createdAt>='${utils.getToday()} 23:59:59'`
     //queryString.search = '____11=""'
 
-    logger.info(`queryString: ${queryString}`);
+    logger.info(`queryString: ${JSON.stringify(queryString)}`);
     return await lge_eloqua.contacts.cod_Get(id, queryString).then((result: ICo) => {
         if(count) return result.total;
         return result;
@@ -349,6 +424,7 @@ const delete_COD = async (): Promise<any> => {
 
 
 export default {
+    bulkInsert_CDO,
     integrationAccount,
     insert_COD,
     delete_COD,

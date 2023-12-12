@@ -32,7 +32,7 @@ export class IAccountCOD {
     type: string;
     fieldValues: {
         id: string;
-        value: string;
+        value: string | number;
     }[];
 
     constructor(account: Account) {
@@ -59,7 +59,7 @@ export class IAccountCOD {
             { id: "3801", value: account.CreditRank },
             { id: "3802", value: account.CriCompScale },
             { id: "3803", value: account.CriGrade },
-            { id: "3804", value: account.EmpCount.toString() },
+            { id: "3804", value: account.EmpCount },
             { id: "3805", value: this.getCurrentUnixTime().toString()}
         ];
     }

@@ -19,6 +19,23 @@ class List {
             },
         });
     }
+
+    def_CO_Imports(id, data) {
+        return this.client._request({
+            method: 'POST',
+            url: `/api/bulk/2.0/customObjects/${id}/imports`,
+            data,
+        });
+    }
+
+    co_Imports(syncsUrl, data) {
+        return this.client._request({
+            method: 'POST',
+            url: `/api/bulk/2.0${syncsUrl}/data`,
+            data,
+        });
+    }
+
     createSync(exportUri) {
         return this.client._request({
             method: 'POST',
@@ -29,7 +46,7 @@ class List {
     checkSync(syncUri) {
         return this.client._request({
             method: 'GET',
-            url: `/api/bulk/2.0${syncUri}`,
+            url: `/api/bulk/2.0/${syncUri}`,
         });
     }
     async pollSync(syncUri) {

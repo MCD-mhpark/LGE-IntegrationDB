@@ -45,14 +45,18 @@ export class IEloquaAccount {
         value: string;
     }[];
     address1: string;
+    address2: string;
+    address3: string;
     postalCode: string;
 
     constructor(account: any, id?: number) {
         this.id = id;
-        this.name = account.CompName;
+        this.name = utils.matchFieldValues(account, "3788");
         this.fieldValues = [
-            { "id": "100424", "value": utils.matchFieldValues(account, "3780") },
-            { "id": "100430", "value": utils.matchFieldValues(account, "3780") },
+            { //DUID
+                "id": "100424", "value": utils.matchFieldValues(account, "3780") },
+            { //CompNameEng
+                "id": "100430", "value": utils.matchFieldValues(account, "3789") },
             { //CountryCode
                 "id": "100459", "value": utils.matchFieldValues(account, "3781") },
             { //TaxId
@@ -69,8 +73,8 @@ export class IEloquaAccount {
                 "id": "100447", "value": utils.matchFieldValues(account, "3794") },
             { //CompType
                 "id": "100452", "value": utils.matchFieldValues(account, "3799") },
-            { //CompNameEng
-                "id": "100453", "value": utils.matchFieldValues(account, "3789") },
+            { //CompTypeEn
+                "id": "100453", "value": utils.matchFieldValues(account, "3798") },
             { //BizCondName
                 "id": "100449", "value": utils.matchFieldValues(account, "3795") },
             { //BizTypeName
@@ -80,14 +84,45 @@ export class IEloquaAccount {
             { //CreditRank
                 "id": "100455", "value": utils.matchFieldValues(account, "3801") },
             { //EmpCount
-                "id": "100181", "value": utils.matchFieldValues(account, "3801") },
-            { "id": "100457", "value": account.CriGrade },
-            { "id": "100456", "value": account.CriCompScale },
-            { "id": "100451", "value": account.CompScale }
+                "id": "100181", "value": utils.matchFieldValues(account, "3804") },
+            {  //CriGrade
+                "id": "100457", "value": utils.matchFieldValues(account, "3803") },
+            { //CriCompScale
+                "id": "100456", "value": utils.matchFieldValues(account, "3802") },
+            { //CompScale
+                "id": "100451", "value": utils.matchFieldValues(account, "3797") }
         ];
-        this.address1 = account.DetailAddr;
-        this.postalCode = account.Zip;
+
+        this.address1 = "";
+        this.address2 = "";
+        this.address3 = "";
+
+        let address = utils.matchFieldValues(account, "3792");
+        let addressArray = address.split(',');
+        let totalBytes = 0;
+
+        for (let i = 0; i < addressArray.length; i++) {
+            const currentAddress = addressArray[i].trim();
+            const addressBytes = Buffer.byteLength(currentAddress);
+
+            if (totalBytes + addressBytes <= 90 &&  Buffer.byteLength(this.address1) < 90) {
+                this.address1 += (this.address1 === "" ? "" : ", ") + currentAddress;
+                totalBytes += 4 
+            } else if (totalBytes + addressBytes <= 180 && Buffer.byteLength(this.address2) < 90) {
+                this.address2 += (this.address2 === "" ? "" : ", ") + currentAddress;
+                totalBytes += 4 
+            } else {
+                this.address3 += (this.address3 === "" ? "" : ", ") + currentAddress;
+                totalBytes += 4 
+            }
+
+            totalBytes += addressBytes;
+        }
+
+   
+        this.postalCode = utils.matchFieldValues(account, "3791");
     }
+
 }
 
 export class AccountForm {

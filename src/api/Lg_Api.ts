@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
-import {ILgToken, ICompanyData, IAccountReq, IAccountRes, IreqAccountRegister, convertCountry} from "@src/api/interface/interfaceApi"
+import {ILgToken, ICompanyData, IAccountReq, IAccountRes, IAccountRegisterReq, convertCountry} from "@src/api/interface/interfaceApi"
 import logger from '../public/modules/jet-logger/lib/index';
 
 const LgToken_DEV: ILgToken = {
@@ -149,7 +149,7 @@ export const AccountProvideAPI = async (data: IAccountReq):Promise<any> => {
 }    
 
 //Account UID 발급 요청 API
-export const AccountRegisterAPI = async (data:IreqAccountRegister):Promise<any> => {
+export const AccountRegisterAPI = async (data:IAccountRegisterReq):Promise<any> => {
 
     //Access Token Value
     const TOKEN = await GetToken();
