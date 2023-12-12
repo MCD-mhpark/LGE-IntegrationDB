@@ -2,7 +2,7 @@ import { lge_eloqua, lgeSdk_eloqua } from '@src/routes/Auth';
 import { Contact, IReqEloqua, ContactForm, IUpdateContact, IContact, SendContactData, CustomObjectData } from "@src/models/ContactDTO";
 import { AccountForm } from "@src/models/AccountDTO"
 import * as LgApi from "@src/api/Lg_Api"
-import {IreqAccountRegister, ICompanyData, IresAccountRegister} from "@src/api/interface/interfaceApi"
+import {IAccountRegisterReq, ICompanyData, IAccountRegisterRes} from "@src/api/interface/interfaceApi"
 import * as utils from "@src/util/etc_function";
 import logger from '../public/modules/jet-logger/lib/index';
 
@@ -75,7 +75,7 @@ const Check_UID = async(data:IContact): Promise<any> => {
         = { email, "DUID": p_DUID, "company": p_CompanyName, "DunsNum": p_DunsNum, "regName": p_RegNum };
 
     // UID 발급을 위한 변수.
-    let reqUID: IreqAccountRegister = {
+    let reqUID: IAccountRegisterReq = {
         Account: [
             {
                 LGCompanyDivision :"EKHQ", //그룹사코드
@@ -127,7 +127,7 @@ const Check_UID = async(data:IContact): Promise<any> => {
             //console.log(reqUID);
 
             //2-1. UID 발급 API 
-            await LgApi.AccountRegisterAPI(reqUID).then(async (value: IresAccountRegister) => {
+            await LgApi.AccountRegisterAPI(reqUID).then(async (value: IAccountRegisterRes) => {
 
                 logger.info(`### 5초 대기 => ${JSON.stringify(value.result)} ###`);
                 // 2-1-1. 5초 발급 대기
