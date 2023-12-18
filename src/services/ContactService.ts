@@ -107,7 +107,7 @@ const Check_UID = async(data:IContact): Promise<any> => {
             queryString.search = `M_Company_Country_Code1='${p_CountryCode}'M_Business_Registration_Number1='${p_RegNum}'`
         }else{
             if(p_DunsNum){
-                queryString.search = `M_Company_Country_Code1='${p_CountryCode}'M_DUNS_Number1='${p_DunsNum}'`
+                queryString.search = `M_Company_Country_Code1='${p_CountryCode}'M_Duns_Number11='${p_DunsNum}'`
             }        
         }
 
