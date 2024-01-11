@@ -1,0 +1,10 @@
+node_modules/
+dist/
+**/**/*.log
+!src/public/modules/eloqua-sdk/node_modules/
+!src/public/modules/eloqua-sdk/dist/
+!src/public/modules/eloqua/dist/
+!src/public/modules/eloqua/node_modules/
+*.crt
+*.pem
+*.key
