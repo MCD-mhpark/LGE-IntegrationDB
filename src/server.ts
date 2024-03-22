@@ -54,7 +54,7 @@ const corsOptions = {
 // Security
 if (EnvVars.NodeEnv === NodeEnvs.Production) {
   app.use(helmet());
-  app.use(cors(corsOptions));
+  //app.use(cors(corsOptions));
 }
 
 

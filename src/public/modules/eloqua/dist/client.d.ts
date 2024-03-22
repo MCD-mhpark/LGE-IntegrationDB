@@ -1,12 +1,13 @@
 /// <reference types="node" />
 import { AxiosRequestConfig } from 'axios';
 import { EventEmitter } from 'events';
+import dotenv from "dotenv";
 declare type EloquaOptions = {
     loginUrl?: string;
     baseUrl?: string;
-    siteName: string;
-    userName: string;
-    password: string;
+    siteName: dotenv;
+    userName: dotenv;
+    password: dotenv;
 };
 export default class EloquaClient extends EventEmitter {
     qs: any;

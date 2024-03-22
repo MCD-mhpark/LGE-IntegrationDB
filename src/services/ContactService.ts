@@ -46,7 +46,7 @@ const Get_ContactList = async(code:string, time: string, pageindex?:number): Pro
         queryString.search = ptimeQuery + pendingQuery;
     }
     
-    //console.log(queryString);
+    console.log(queryString);
     
     return await lge_eloqua.contacts.getAll(queryString).then((result: any) => {
         return result
@@ -60,131 +60,134 @@ const Get_ContactList = async(code:string, time: string, pageindex?:number): Pro
 //UID 발급 프로세스
 const Check_UID = async(data:IContact): Promise<any> => {
 
-    
     const email = data.emailAddress;
     const p_DUID = utils.matchFieldValues(data, '100423') ? utils.matchFieldValues(data, '100423') : ""; 
     const p_CountryCode = utils.matchFieldValues(data, '100458'); //Company Country Code
     const p_CompanyName = data.hasOwnProperty('accountName') ? data.accountName : "";
     const p_RegNum = utils.matchFieldValues(data, '100398');
-    const p_DunsNum = Math.floor(utils.matchFieldValues(data, '100435')).toString();;
-    
-    //logger.info(`email: ${email}, companyCode: ${p_CountryCode}, uid: ${p_uid}, CompanyName: ${p_CompanyName}, regNum: ${p_RegNum}, DunsNum: ${p_DunsNum}`);
-    
-    // **Check_UID의 Return 변수.
-    let uResult: {email:string, DUID: string, company: string, regName?:string, DunsNum?:string } 
-        = { email, "DUID": p_DUID, "company": p_CompanyName, "DunsNum": p_DunsNum, "regName": p_RegNum };
+    const p_DunsNum = Math.floor(utils.matchFieldValues(data, '100489')).toString();
 
-    // UID 발급을 위한 변수.
-    let reqUID: IAccountRegisterReq = {
-        Account: [
-            {
-                LGCompanyDivision :"EKHQ", //그룹사코드
-                SourceSystemDivision:"Eloqua",
-                SourceSystemKey1 : "eloquaAccount" ,
-                Country: p_CountryCode ,
-                AccountName: p_CompanyName,
-                CompanyRegistrationNumber: p_RegNum ? p_RegNum.replace(/[\s-]/g, "") : "",
-                DunsNumber : p_DunsNum,
-            }
-        ]
-    };
+    ///if문 DunsNum이 9자리가 아닐떄 분기처리
+    if(p_DunsNum.length !== 9) {
+        logger.info(`### @Check_UID DunsNum 자릿수 오류 END ###`);
+        return
+    } else {
+        // **Check_UID의 Return 변수.
+        let uResult: {email:string, DUID: string, company: string, regName?:string, DunsNum?:string }
+            = { email, "DUID": p_DUID, "company": p_CompanyName, "DunsNum": p_DunsNum, "regName": p_RegNum };
 
-    // 발급 신청 후 SingleResultAPI UID 조회를 위한 변수. 
-    let issueUID: ICompanyData = {
-        LGCompanyDivision: "EKHQ",
-        countryCode: p_CountryCode,
-        bizRegNo: p_RegNum ? p_RegNum.replace(/[\s-]/g, "") : "",
-        dunsNo: p_DunsNum
-    }
+        // UID 발급을 위한 변수.
+        let reqUID: IAccountRegisterReq = {
+            Account: [
+                {
+                    LGCompanyDivision :"EKHQ", //그룹사코드
+                    SourceSystemDivision:"Eloqua",
+                    SourceSystemKey1 : "eloquaAccount" ,
+                    Country: p_CountryCode ,
+                    AccountName: p_CompanyName,
+                    CompanyRegistrationNumber: p_RegNum ? p_RegNum.replace(/[\s-]/g, "") : "",
+                    DunsNumber : p_DunsNum,
+                }
+            ]
+        };
 
-    /**
-     * Check_UID PROCESS
-     **/
-    try {
-        
-        let queryString: IReqEloqua = { search: '', depth:'complete' };
-        if(p_CountryCode == 'KR'){
-            queryString.search = `M_Company_Country_Code1='${p_CountryCode}'M_Business_Registration_Number1='${p_RegNum}'`
-        }else{
-            if(p_DunsNum){
-                queryString.search = `M_Company_Country_Code1='${p_CountryCode}'M_Duns_Number11='${p_DunsNum}'`
-            }        
+        // 발급 신청 후 SingleResultAPI UID 조회를 위한 변수.
+        let issueUID: ICompanyData = {
+            LGCompanyDivision: "EKHQ",
+            countryCode: p_CountryCode,
+            bizRegNo: p_RegNum ? p_RegNum.replace(/[\s-]/g, "") : "",
+            dunsNo: p_DunsNum
         }
 
-        //1. UID 존재 여부 확인
-        const eloquaAccount = await lge_eloqua.accounts.getAll(queryString);
+        /**
+         * Check_UID PROCESS
+         **/
+        try {
 
-        //2. 있을 경우 Eloqua Account Table UID Return.
-        if(eloquaAccount.elements.length !== 0){
-            logger.info(`### email: ${email}(${p_DunsNum}) Eloqua DUID 존재 => ${p_CountryCode}, ${p_CompanyName} ###`);
-            uResult.DUID = utils.matchFieldValues(eloquaAccount.elements[0], '100424'); //100424: Account Fields ID
-            uResult.company =  eloquaAccount.elements[0].name;
-            
-        // 2. 없을 경우 발급요청(companyName != null) 후 5초 대기 (단, Account UID가 pending* 인 것은 요청 하지 않음)
-        }else if (eloquaAccount.elements.length == 0 && p_CompanyName !== undefined && !p_DUID.startsWith('pending')){
+            let queryString: IReqEloqua = { search: '', depth:'complete' };
+            if(p_CountryCode == 'KR'){
+                queryString.search = `M_Company_Country_Code1='${p_CountryCode}'M_Business_Registration_Number1='${p_RegNum}'`
+            }else{
+                if(p_DunsNum){
+                    queryString.search = `M_Company_Country_Code1='${p_CountryCode}'M_Duns_Number11='${p_DunsNum}'`
+                }
+            }
 
-            logger.warn(`### email: ${email} UID 발급 요청=> ${p_CountryCode}, ${p_CompanyName}, BizNo: ${p_RegNum} , DunsNum: ${p_DunsNum} ###`);
-            //console.log(reqUID);
+            //1. UID 존재 여부 확인
+            const eloquaAccount = await lge_eloqua.accounts.getAll(queryString);
 
-            //2-1. UID 발급 API 
-            await LgApi.AccountRegisterAPI(reqUID).then(async (value: IAccountRegisterRes) => {
+            //2. 있을 경우 Eloqua Account Table UID Return.
+            if(eloquaAccount.elements.length !== 0){
+                logger.info(`### email: ${email}(${p_DunsNum}) Eloqua DUID 존재 => ${p_CountryCode}, ${p_CompanyName} ###`);
+                uResult.DUID = utils.matchFieldValues(eloquaAccount.elements[0], '100424'); //100424: Account Fields ID
+                uResult.company =  eloquaAccount.elements[0].name;
 
-                logger.info(`### 5초 대기 => ${JSON.stringify(value.result)} ###`);
-                // 2-1-1. 5초 발급 대기
-                await utils.delay(5000);
-                // 2-1-2. 발급 받은 UID 및 CompanyName 확인
-                const issueUIDResult = await LgApi.AccountSingleResultAPI(issueUID);
+                // 2. 없을 경우 발급요청(companyName != null) 후 5초 대기 (단, Account UID가 pending* 인 것은 요청 하지 않음)
+            }else if (eloquaAccount.elements.length == 0 && p_CompanyName !== undefined && !p_DUID.startsWith('pending')){
 
-                //2-2. 발급이 된 UID Return
-                if(issueUIDResult.Account.length !== 0){
-                    //logger.info(`### issueUIDResult 발급결과 => ${JSON.stringify(issueUIDResult)} ###`);                    
-                    uResult.DUID = issueUIDResult.Account[0].DUID;
-                    uResult.company = issueUIDResult.Account[0].Name;
+                logger.warn(`### email: ${email} UID 발급 요청=> ${p_CountryCode}, ${p_CompanyName}, BizNo: ${p_RegNum} , DunsNum: ${p_DunsNum} ###`);
+                //console.log(reqUID);
 
-                    /*
-                    * Account Insert 로직이 필요함 중복 요청을 안하기 위해서 폼프로세싱 처리.
-                    */
-                    const AccountFormId = 8930;
-                    let account = {
-                        DUID: uResult.DUID,
-                        CountryCode: p_CountryCode,
-                        BizNo: p_RegNum,
-                        TaxId: "",
-                        CompName: uResult.company,
-                        DUNSNo: p_DunsNum
-                    }
-                    let convertFormData = new AccountForm(account);
+                //2-1. UID 발급 API
+                await LgApi.AccountRegisterAPI(reqUID).then(async (value: IAccountRegisterRes) => {
 
-                    await lge_eloqua.contacts.form_Create(AccountFormId, convertFormData);
-                    logger.info(`### ${p_DunsNum} => DUID 폼프로세싱 처리 완료 ###`)
+                    logger.info(`### 5초 대기 => ${JSON.stringify(value.result)} ###`);
+                    // 2-1-1. 5초 발급 대기
+                    await utils.delay(5000);
+                    // 2-1-2. 발급 받은 UID 및 CompanyName 확인
+                    const issueUIDResult = await LgApi.AccountSingleResultAPI(issueUID);
 
-                }else {
+                    //2-2. 발급이 된 UID Return
+                    if(issueUIDResult.Account.length !== 0){
+                        //logger.info(`### issueUIDResult 발급결과 => ${JSON.stringify(issueUIDResult)} ###`);
+                        uResult.DUID = issueUIDResult.Account[0].DUID;
+                        uResult.company = issueUIDResult.Account[0].Name;
 
-                    //3-1. 발급 요청한 Company가 조회 되지 않을 경우
-                    logger.warn(`
+                        /*
+                        * Account Insert 로직이 필요함 중복 요청을 안하기 위해서 폼프로세싱 처리.
+                        */
+                        const AccountFormId = 8930;
+                        let account = {
+                            DUID: uResult.DUID,
+                            CountryCode: p_CountryCode,
+                            BizNo: p_RegNum,
+                            TaxId: "",
+                            CompName: uResult.company,
+                            DUNSNo: p_DunsNum
+                        }
+                        let convertFormData = new AccountForm(account);
+
+                        await lge_eloqua.contacts.form_Create(AccountFormId, convertFormData);
+                        logger.info(`### ${p_DunsNum} => DUID 폼프로세싱 처리 완료 ###`)
+
+                    }else {
+
+                        //3-1. 발급 요청한 Company가 조회 되지 않을 경우
+                        logger.warn(`
                     ***CHECKPOINT!***
                     pending =>  ${p_CountryCode}, ${p_CompanyName}, ${p_DunsNum}, ${p_RegNum} 
                     pending AccountRegister result => ${JSON.stringify(value.result)} `);
-                    /*
-                    * 추 후 발급 결과 조회 API 로그가 필요함 
-                    */
-                    uResult.company = p_CompanyName;
-                    uResult.DUID = `pending(${JSON.parse(value.result).Account[0].VID})`;
-                }
-        
-            }).catch(error => {
-                throw error;
-            });
+                        /*
+                        * 추 후 발급 결과 조회 API 로그가 필요함
+                        */
+                        uResult.company = p_CompanyName;
+                        uResult.DUID = `pending(${JSON.parse(value.result).Account[0].VID})`;
+                    }
 
+                }).catch(error => {
+                    throw error;
+                });
+
+            }
+
+            return uResult;
+
+        } catch (error) {
+            logger.err(`### Check_UID logic Error : ${p_CountryCode}, ${p_CompanyName}, DunsNum: ${p_DunsNum}, BizNo: ${p_RegNum} ###`);
+            logger.err(error.message);
+            logger.err(error.stack);
+            return `Check_UID logic Error`;
         }
-        
-        return uResult;
-
-    } catch (error) {
-        logger.err(`### Check_UID logic Error : ${p_CountryCode}, ${p_CompanyName}, DunsNum: ${p_DunsNum}, BizNo: ${p_RegNum} ###`);
-        logger.err(error.message);
-        logger.err(error.stack);
-        return `Check_UID logic Error`;
     }
 }
 
