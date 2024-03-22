@@ -78,7 +78,8 @@ const UID_Process = async(time:string): Promise<void> => {
                         //logger.info('중복 요청으로 인한 오류를 피하기 위해 0.3초 대기');
                         await utils.delay(300);
                     }; 
-                    
+
+
                     function promise (data:IContact) {
                         return new Promise<IUpdateContact>(async(resolve, reject) => {
 
